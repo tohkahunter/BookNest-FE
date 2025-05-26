@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: fantasy --default, all;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.swiper-button-next,
+.swiper-button-prev {
+  @apply w-8 h-8 bg-base-100 rounded-full;
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 14px !important; /* Thu nhỏ icon */
+}
