@@ -1,0 +1,79 @@
+
+
+/* Custom styles for BookDetail page */
+
+body {
+  font-family: Copernicus, 'Libre Baskerville', Georgia, serif;
+}  
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth transitions for star ratings */
+.star-rating {
+  transition: all 0.2s ease-in-out;
+}
+
+.star-rating:hover {
+  transform: scale(1.1);
+}
+
+/* Custom scrollbar for review content */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive book cover shadow */
+@media (min-width: 768px) {
+  .book-cover-shadow {
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+  }
+}
+
+/* Animation for dropdown */
+.dropdown-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.dropdown-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 200ms ease-in-out;
+}
+
+.dropdown-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 200ms ease-in-out;
+}
