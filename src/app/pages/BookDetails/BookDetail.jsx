@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import './styles/BookDetail.css';
+import Footer from '../../components/Footer';
 
 function BookDetail() {
   const { id } = useParams();
@@ -65,8 +66,7 @@ She loves scary movies, sci-fi and horror shows, playing video games, cooking, d
 
   return (
     <div className="min-h-screen bg-white-50">
-      {/* Header Component */}
-      <Header />
+     
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Main Content */}
@@ -351,7 +351,9 @@ She loves scary movies, sci-fi and horror shows, playing video games, cooking, d
           </div>
         </div>
       </div>
+      
     </div>
+    
   );
 }
 
