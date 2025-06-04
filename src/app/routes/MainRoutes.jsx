@@ -6,6 +6,7 @@ import Login from '../pages/Log In'
 import BookDetail from '../pages/BookDetails/BookDetail'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import ProfilePage from '../pages/Profile/ProfilePage'
 
 export default function MainRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function MainRoutes() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/book/:id" element={<BookDetail/>}/>
+            <Route path="/profile" element={<ProfilePage/>}/>
         </Routes>
     <Footer/>
     </BrowserRouter>
