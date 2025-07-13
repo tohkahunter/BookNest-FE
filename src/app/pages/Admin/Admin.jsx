@@ -1,7 +1,47 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState, useRef } from "react";
+import { getAllBooks, getAllAuthors } from "./services/adminApi";
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("all");
+  const [books, setBooks] = useState([]);
+  const [authors, setAuthors] = useState([]);
+  const [bookCount, setBookCount] = useState(0);
+  const [authorCount, setAuthorCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const bookTableRef = useRef(null);
+
+  const booksPerPage = 10;
+
+  useEffect(() => {
+    if (bookTableRef.current) {
+      bookTableRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [currentPage]);
+
+  useEffect(() => {
+    getAllBooks()
+      .then((books) => {
+        setBooks(books);
+        setBookCount(books.length);
+      })
+      .catch(console.error);
+
+    getAllAuthors()
+      .then((authors) => {
+        setAuthors(authors);
+        setAuthorCount(authors.length);
+      })
+      .catch(console.error);
+  }, []);
+
+  const getAuthorName = (authorId) => {
+    const author = authors.find((a) => a.AuthorId === authorId);
+    return author ? author.Name : "Unknown";
+  };
+
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
+  const totalPages = Math.ceil(books.length / booksPerPage);
 
   return (
     <div className="admin-container mb-10">
@@ -70,7 +110,7 @@ export default function Admin() {
               <option>Title Z-A</option>
               <option>Author A-Z</option>
               <option>Date Added</option>
-              <option>Rating</option>
+              <option>Publication Date</option>
             </select>
           </div>
         </div>
@@ -96,7 +136,7 @@ export default function Admin() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">1,247</p>
+                  <p className="text-2xl font-bold">{bookCount}</p>
                   <p className="text-sm text-neutral/70">Total Books</p>
                 </div>
               </div>
@@ -122,7 +162,7 @@ export default function Admin() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">342</p>
+                  <p className="text-2xl font-bold">{authorCount}</p>
                   <p className="text-sm text-neutral/70">Authors</p>
                 </div>
               </div>
@@ -158,9 +198,9 @@ export default function Admin() {
           <div className="card bg-base-100 shadow-md">
             <div className="card-body p-4">
               <div className="flex items-center gap-3">
-                <div className="bg-error/20 p-3 rounded-full">
+                <div className="bg-primary/20 p-3 rounded-full">
                   <svg
-                    className="w-6 h-6 text-error"
+                    className="w-6 h-6 text-primary"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -169,13 +209,13 @@ export default function Admin() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">4.2</p>
-                  <p className="text-sm text-neutral/70">Avg Rating</p>
+                  <p className="text-2xl font-bold">156</p>
+                  <p className="text-sm text-neutral/70">Active Users</p>
                 </div>
               </div>
             </div>
@@ -183,126 +223,145 @@ export default function Admin() {
         </div>
 
         {/* Books Table */}
-        <div className="card bg-base-100 shadow-md">
+        <div className="card bg-base-100 shadow-md" ref={bookTableRef}>
           <div className="card-body p-0">
             <div className="overflow-x-auto">
               <table className="table table-zebra">
                 <thead>
                   <tr>
-                    <th>
-                      <label>
-                        <input type="checkbox" className="checkbox" />
-                      </label>
-                    </th>
+                    <th>No</th>
+                    <th>Image</th>
                     <th>Book</th>
                     <th>Author</th>
                     <th>Genre</th>
-                    <th>Rating</th>
+                    <th>Publication Year</th>
                     <th>Date Added</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {/* Sample book rows */}
-                  <tr>
-                    <td>
-                      <label>
-                        <input type="checkbox" className="checkbox" />
-                      </label>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-3">
+                  {currentBooks.map((book) => (
+                    <tr key={book.BookId}>
+                      <td>{book.BookId}</td>
+                      <td>
                         <div className="avatar">
                           <div className="mask mask-squircle w-12 h-12">
                             <img
-                              src="/api/placeholder/48/48"
+                              src={
+                                book.CoverImageUrl || "/api/placeholder/48/48"
+                              }
                               alt="Book Cover"
                             />
                           </div>
                         </div>
+                      </td>
+                      <td>
                         <div>
-                          <div className="font-bold">The First Days</div>
+                          <div className="font-bold">{book.Title}</div>
                           <div className="text-sm opacity-50">
-                            As the World Dies, #1
+                            {book.Isbn13}
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="font-medium">Rhiannon Frater</div>
-                    </td>
-                    <td>
-                      <div className="badge badge-ghost badge-sm">Horror</div>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-1">
-                        <span className="text-orange-400">★</span>
-                        <span>4.12</span>
-                      </div>
-                    </td>
-                    <td>March 15, 2024</td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button className="btn btn-ghost btn-xs">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                            />
-                          </svg>
-                        </button>
-                        <button className="btn btn-ghost btn-xs text-error">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  {/* More rows would be dynamically generated */}
+                      </td>
+                      <td>
+                        <div className="font-medium">
+                          {getAuthorName(book.AuthorId) || "Unknown"}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="badge badge-ghost badge-sm">
+                          {book.Genre?.Name || "N/A"}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="text-sm text-center">{book.PublicationYear}</div>
+                      </td>
+                      <td>{new Date(book.CreatedAt).toLocaleDateString()}</td>
+                      <td>
+                        <div className="flex gap-2">
+                          <button className="btn btn-ghost btn-xs">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                              />
+                            </svg>
+                          </button>
+                          <button className="btn btn-ghost btn-xs text-error">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        {/* Pagination */}
-        {/* <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-6">
           <div className="btn-group">
-            <button className="btn btn-outline">«</button>
-            <button className="btn btn-outline">1</button>
-            <button className="btn btn-outline btn-active">2</button>
-            <button className="btn btn-outline">3</button>
-            <button className="btn btn-outline">4</button>
-            <button className="btn btn-outline">»</button>
-          </div>
-        </div> */}
+            <button
+              className="btn btn-outline"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            >
+              «
+            </button>
 
-        {/* Bulk Actions */}
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index}
+                className={`btn btn-outline ${
+                  currentPage === index + 1 ? "btn-active" : ""
+                }`}
+                onClick={() => setCurrentPage(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+
+            <button
+              className="btn btn-outline"
+              disabled={currentPage === totalPages}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+            >
+              »
+            </button>
+          </div>
+        </div>
+
         <div className="flex justify-between items-center mt-6 p-4 bg-base-200 rounded-lg">
           <div className="flex items-center gap-2">
             <span className="text-sm">Bulk Actions:</span>
             <button className="btn btn-outline btn-sm">Delete Selected</button>
           </div>
           <div className="text-sm text-neutral/70">
-            Showing 1-10 of 1,247 books
+            Showing {indexOfFirstBook + 1}–
+            {Math.min(indexOfLastBook, books.length)} of {books.length} books
           </div>
         </div>
       </div>
