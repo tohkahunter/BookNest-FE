@@ -3,7 +3,8 @@ import React from 'react';
 const Footer = () => {
   return (
     <footer className="bg-amber-50 py-8 px-4 max-w-full">
-      <div className="max-w-xl mx-auto max-w-full ">
+      <div className="mx-auto w-full max-w-screen-xl">
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* Company Section */}
           <div>

@@ -73,7 +73,7 @@ She loves scary movies, sci-fi and horror shows, playing video games, cooking, d
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Book Cover and Actions */}
           <div className="lg:col-span-1">
-            <div className="fixed top-24 left-4 w-80 z-30">
+            <div className="sticky top-24 w-80">
               {/* Book Cover */}
               <div className="mb-6">
                 <div className="w-full max-w-sm mx-auto sticky top-4">

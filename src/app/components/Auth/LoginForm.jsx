@@ -1,17 +1,14 @@
 import React, { useState } from "react";
-import { login, register } from "../../../services/authService";
+import { login } from "../../../services/authService";
 
-export default function AuthForm() {
-  const [isLogin, setIsLogin] = useState(true);
+export default function LoginForm({ onSwitchToRegister }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Xử lý đăng nhập
+  // Xử lý đăng nhập - copy nguyên từ AuthForm gốc
   async function handleLogin(e) {
     e.preventDefault();
     setErrorMessage(null);
@@ -25,10 +22,13 @@ export default function AuthForm() {
 
     try {
       console.log({ email, password });
-      await login({ email, password });
+      const result = await login({ email, password });
+      console.log("Login success:", result);
+
+      // Redirect về home (Header sẽ tự động cập nhật nhờ auth event)
       window.location.href = "/";
     } catch (error) {
-      console.log("Backend error:", error.response?.data); // Thêm dòng này
+      console.log("Backend error:", error.response?.data);
       let msg = "Invalid email or password";
       if (error.response?.data) {
         if (typeof error.response.data === "string") {
@@ -36,7 +36,6 @@ export default function AuthForm() {
         } else if (typeof error.response.data.message === "string") {
           msg = error.response.data.message;
         } else {
-          // Nếu là object, stringify để xem chi tiết
           msg = JSON.stringify(error.response.data);
         }
       }
@@ -46,73 +45,13 @@ export default function AuthForm() {
     }
   }
 
-  // Xử lý đăng ký
-  async function handleRegister(e) {
-    e.preventDefault();
-    setErrorMessage(null);
-    setIsLoading(true);
-
-    if (!name || !email || !password || !confirmPassword) {
-      setErrorMessage("Please fill in all fields");
-      setIsLoading(false);
-      return;
-    }
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match");
-      setIsLoading(false);
-      return;
-    }
-    if (password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters");
-      setIsLoading(false);
-      return;
-    }
-
-    // Tách họ tên
-    const [firstName, ...lastArr] = name.trim().split(" ");
-    const lastName = lastArr.join(" ");
-
-    try {
-      await register({
-        username: email.split("@")[0],
-        email,
-        password,
-        firstName,
-        lastName,
-      });
-      setIsLogin(true);
-      setErrorMessage("Register successful! Please login.");
-    } catch (error) {
-      setErrorMessage(error.response?.data || "Register failed");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  const switchToRegister = () => {
-    setIsLogin(false);
-    setErrorMessage(null);
-    setEmail("");
-    setPassword("");
-    setName("");
-    setConfirmPassword("");
-  };
-
-  const switchToLogin = () => {
-    setIsLogin(true);
-    setErrorMessage(null);
-    setEmail("");
-    setPassword("");
-    setName("");
-    setConfirmPassword("");
-  };
-
   return (
     <div
       className="min-h-screen bg-indigo-to-br from-slate-900 via-slate-800 to-slate-700 flex items-center justify-center p-3"
       style={{ isolation: "isolate" }}
     >
       <div className="w-full max-w-md">
+        {/* Error Message */}
         {errorMessage && (
           <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
             <svg
@@ -133,9 +72,7 @@ export default function AuthForm() {
         )}
 
         <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-          <div
-            className={`px-6 py-6 text-center bg-gradient-to-r from-amber-100 to-amber-300`}
-          >
+          <div className="px-6 py-6 text-center bg-gradient-to-r from-amber-100 to-amber-300">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mb-3">
               <svg
                 className="w-6 h-6 text-white"
@@ -151,38 +88,15 @@ export default function AuthForm() {
                 />
               </svg>
             </div>
-            <h2 className="text-lg font-bold text-black mb-1">
-              {isLogin ? "Welcome Back" : "Create Account"}
-            </h2>
+            <h2 className="text-lg font-bold text-black mb-1">Welcome Back</h2>
             <p className="text-black/90 text-sm">
-              {isLogin
-                ? "Continue your reading journey"
-                : "Start your reading adventure"}
+              Continue your reading journey
             </p>
           </div>
 
-          <form
-            className="px-6 py-5"
-            onSubmit={isLogin ? handleLogin : handleRegister}
-          >
+          <form className="px-6 py-5" onSubmit={handleLogin}>
             <div className="space-y-3">
-              {!isLogin && (
-                <div>
-                  <label className="block text-gray-700 font-medium mb-1 text-sm">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3 py-2.5 pl-3 pr-9 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-sm bg-gray-50 hover:bg-white"
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                </div>
-              )}
-
+              {/* Email Field */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1 text-sm">
                   Email
@@ -198,6 +112,7 @@ export default function AuthForm() {
                 </div>
               </div>
 
+              {/* Password Field */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1 text-sm">
                   Password
@@ -253,23 +168,6 @@ export default function AuthForm() {
                   </button>
                 </div>
               </div>
-
-              {!isLogin && (
-                <div>
-                  <label className="block text-gray-700 font-medium mb-1 text-sm">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2.5 pl-3 pr-9 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-sm bg-gray-50 hover:bg-white"
-                      placeholder="Confirm your password"
-                    />
-                  </div>
-                </div>
-              )}
             </div>
 
             <button
@@ -280,27 +178,23 @@ export default function AuthForm() {
               {isLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                  {isLogin ? "Signing In..." : "Creating Account..."}
+                  Signing In...
                 </>
-              ) : isLogin ? (
-                "Login"
               ) : (
-                "Register"
+                "Login"
               )}
             </button>
           </form>
 
           <div className="text-center pt-3">
             <span className="text-gray-600 text-sm">
-              {isLogin
-                ? "Don't have an account? "
-                : "Already have an account? "}
+              Don't have an account?{" "}
             </span>
             <button
-              onClick={isLogin ? switchToRegister : switchToLogin}
+              onClick={onSwitchToRegister}
               className="font-medium transition-colors hover:underline text-sm text-bg-amber-50 hover:text-indigo-700"
             >
-              {isLogin ? "Register" : "Login"}
+              Register
             </button>
           </div>
         </div>
@@ -309,7 +203,7 @@ export default function AuthForm() {
           <p className="text-gray-400 text-sm">
             Discover your next favorite book with{" "}
             <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 to-amber-400">
-              goodReads
+              BookNest
             </span>
           </p>
         </div>
