@@ -455,6 +455,28 @@ const Header = () => {
                         </svg>
                         My Library
                       </Link>
+                      {user?.role === "Admin" && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          <svg
+                            className="w-4 h-4 mr-3 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 7h18M3 12h18M3 17h18"
+                            />
+                          </svg>
+                          Admin Dashboard
+                        </Link>
+                      )}
                       <Link
                         to="/settings"
                         className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
@@ -783,6 +805,29 @@ const Header = () => {
                     </svg>
                     My Profile
                   </Link>
+                  {user?.role === "Admin" && (
+                    <Link
+                      to="/admin"
+                      className="flex items-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 py-2 px-3 rounded-lg transition-colors duration-200 text-sm"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      <svg
+                        className="w-4 h-4 mr-3 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 7h18M3 12h18M3 17h18"
+                        />
+                      </svg>
+                      Admin Dashboard
+                    </Link>
+                  )}
+
                   <Link
                     to="/settings"
                     className="flex items-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 py-2 px-3 rounded-lg transition-colors duration-200 text-sm"

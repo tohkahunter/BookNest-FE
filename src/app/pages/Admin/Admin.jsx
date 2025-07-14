@@ -1,13 +1,34 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getAllBooks, getAllAuthors } from "./services/adminApi";
+import {
+  getAllBooks,
+  getAllAuthors,
+  getAllGenres,
+  addBook,
+  updateBook,
+  deleteBook,
+} from "./services/adminApi";
+import AddModal from "./components/addModal";
+import EditModal from "./components/editModal";
+import DeleteModal from "./components/deleteModal";
+import { toast } from "react-toastify";
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("all");
   const [books, setBooks] = useState([]);
-  const [authors, setAuthors] = useState([]);
   const [bookCount, setBookCount] = useState(0);
+  const [genres, setGenres] = useState([]);
   const [authorCount, setAuthorCount] = useState(0);
+  const [authors, setAuthors] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const bookTableRef = useRef(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("All");
+  const [sortOption, setSortOption] = useState("None");
 
   const booksPerPage = 10;
 
@@ -31,17 +52,129 @@ export default function Admin() {
         setAuthorCount(authors.length);
       })
       .catch(console.error);
-  }, []);
 
-  const getAuthorName = (authorId) => {
-    const author = authors.find((a) => a.AuthorId === authorId);
-    return author ? author.Name : "Unknown";
-  };
+    getAllGenres()
+      .then((genres) => {
+        setGenres(genres);
+      })
+      .catch(console.error);
+  }, []);
 
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
-  const totalPages = Math.ceil(books.length / booksPerPage);
+  // Apply search, filter, and sort
+  const filteredBooks = books
+    .filter((book) => {
+      const matchesSearch =
+        book.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.AuthorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.GenreName.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesGenre =
+        selectedGenre === "All" || book.GenreName === selectedGenre;
+
+      return matchesSearch && matchesGenre;
+    })
+    .sort((a, b) => {
+      switch (sortOption) {
+        case "TitleAZ":
+          return a.Title.localeCompare(b.Title);
+        case "TitleZA":
+          return b.Title.localeCompare(a.Title);
+        case "AuthorAZ":
+          return a.AuthorName.localeCompare(b.AuthorName);
+        case "DateAdded":
+          return new Date(b.CreatedAt) - new Date(a.CreatedAt);
+        case "PublicationYear":
+          return b.PublicationYear - a.PublicationYear;
+        default:
+          return 0;
+      }
+    });
+
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+
+  const handleAddBook = async (newBookData) => {
+    try {
+      const response = await addBook(newBookData);
+      const addedBook = response.Book;
+
+      setBooks((prevBooks) => [addedBook, ...prevBooks]);
+      setBookCount((prev) => prev + 1);
+      setIsAddModalOpen(false);
+
+      // Refresh author/genre list
+      const updatedAuthors = await getAllAuthors();
+      const updatedGenres = await getAllGenres();
+      setAuthors(updatedAuthors);
+      setGenres(updatedGenres);
+      toast.success("Book added successfully!");
+    } catch (err) {
+      console.error("Failed to add book:", err);
+      toast.error("Failed to add book.");
+
+    }
+  };
+
+  const handleEditBook = (book) => {
+    setSelectedBook(book);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateBook = async (updatedBookData) => {
+    try {
+      await updateBook(updatedBookData.bookId, updatedBookData);
+
+      // Re-fetch to ensure AuthorName/GenreName are present
+      const updatedBooks = await getAllBooks();
+      setBooks(updatedBooks);
+
+      setIsEditModalOpen(false);
+      setSelectedBook(null);
+      toast.success("Book updated successfully!");
+    } catch (err) {
+      console.error("Failed to update book:", err);
+      toast.error("Failed to update book.");
+    }
+  };
+
+  const handleDeleteBook = (book) => {
+    setBookToDelete(book);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async (bookId) => {
+    setIsDeleting(true);
+    try {
+      await deleteBook(bookId);
+      setBooks((prevBooks) => prevBooks.filter((b) => b.BookId !== bookId));
+      setBookCount((prev) => prev - 1);
+      setIsDeleteModalOpen(false);
+      setBookToDelete(null);
+      toast.success("Book deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete book:", err);
+      toast.error("Failed to delete book.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleGenreChange = (e) => {
+    setSelectedGenre(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="admin-container mb-10">
@@ -56,34 +189,19 @@ export default function Admin() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4">
         {/* Action Buttons */}
-        <div className="flex gap-4 mb-6">
-          <button className="btn btn-success text-white">+ Add New Book</button>
-        </div>
+        <button
+          className="btn btn-success text-white"
+          onClick={() => setIsAddModalOpen(true)}
+        >
+          + Add New Book
+        </button>
 
         {/* Tabs Navigation */}
         <div className="tabs mb-6">
           <button
             className={`tab tab-lg ${activeTab === "all" ? "tab-active" : ""}`}
             onClick={() => setActiveTab("all")}
-          >
-            All Books
-          </button>
-          <button
-            className={`tab tab-lg ${
-              activeTab === "recent" ? "tab-active" : ""
-            }`}
-            onClick={() => setActiveTab("recent")}
-          >
-            Recent Additions
-          </button>
-          <button
-            className={`tab tab-lg ${
-              activeTab === "popular" ? "tab-active" : ""
-            }`}
-            onClick={() => setActiveTab("popular")}
-          >
-            Popular Books
-          </button>
+          ></button>
         </div>
 
         {/* Search and Filter Section */}
@@ -93,36 +211,58 @@ export default function Admin() {
               type="text"
               placeholder="Search books by title, author, or genre..."
               className="input input-bordered w-full"
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
           </div>
-          <div className="flex gap-2">
-            <select className="select select-bordered">
-              <option>All Genres</option>
-              <option>Fiction</option>
-              <option>Non-Fiction</option>
-              <option>Horror</option>
-              <option>Romance</option>
-              <option>Science Fiction</option>
+          <div className="flex gap-1">
+            <select
+              className="select select-bordered"
+              value={selectedGenre}
+              onChange={handleGenreChange}
+            >
+              <option value="All">All Genres</option>
+              {genres.map((genre) => (
+                <option key={genre.GenreId} value={genre.GenreName}>
+                  {genre.GenreName}
+                </option>
+              ))}
             </select>
-            <select className="select select-bordered">
-              <option>Sort by</option>
-              <option>Title A-Z</option>
-              <option>Title Z-A</option>
-              <option>Author A-Z</option>
-              <option>Date Added</option>
-              <option>Publication Date</option>
+
+            <select
+              className="select select-bordered"
+              value={sortOption}
+              onChange={handleSortChange}
+            >
+              <option value="None">Sort by</option>
+              <option value="TitleAZ">Title A-Z</option>
+              <option value="TitleZA">Title Z-A</option>
+              <option value="AuthorAZ">Author A-Z</option>
+              <option value="DateAdded">Date Added</option>
+              <option value="PublicationYear">Publication Year</option>
             </select>
+
+            <button
+              className="btn btn-outline"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedGenre("All");
+                setSortOption("None");
+              }}
+            >
+              Reset Filters
+            </button>
           </div>
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="card bg-base-100 shadow-md">
-            <div className="card-body p-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-success/20 p-3 rounded-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
+          <div className="card bg-base-100 shadow-lg">
+            <div className="card-body p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-success/20 p-4 rounded-full">
                   <svg
-                    className="w-6 h-6 text-success"
+                    className="w-8 h-8 text-success"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -136,19 +276,21 @@ export default function Admin() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{bookCount}</p>
-                  <p className="text-sm text-neutral/70">Total Books</p>
+                  <p className="text-3xl font-bold text-neutral">{bookCount}</p>
+                  <p className="text-base text-neutral/70 font-medium">
+                    Total Books
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="card bg-base-100 shadow-md">
-            <div className="card-body p-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-warning/20 p-3 rounded-full">
+          <div className="card bg-base-100 shadow-lg">
+            <div className="card-body p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-warning/20 p-4 rounded-full">
                   <svg
-                    className="w-6 h-6 text-warning"
+                    className="w-8 h-8 text-warning"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -162,19 +304,23 @@ export default function Admin() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{authorCount}</p>
-                  <p className="text-sm text-neutral/70">Authors</p>
+                  <p className="text-3xl font-bold text-neutral">
+                    {authorCount}
+                  </p>
+                  <p className="text-base text-neutral/70 font-medium">
+                    Authors
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="card bg-base-100 shadow-md">
-            <div className="card-body p-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-info/20 p-3 rounded-full">
+          <div className="card bg-base-100 shadow-lg">
+            <div className="card-body p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-info/20 p-4 rounded-full">
                   <svg
-                    className="w-6 h-6 text-info"
+                    className="w-8 h-8 text-info"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -188,34 +334,12 @@ export default function Admin() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">28</p>
-                  <p className="text-sm text-neutral/70">Genres</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card bg-base-100 shadow-md">
-            <div className="card-body p-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/20 p-3 rounded-full">
-                  <svg
-                    className="w-6 h-6 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">156</p>
-                  <p className="text-sm text-neutral/70">Active Users</p>
+                  <p className="text-3xl font-bold text-neutral">
+                    {genres.length}
+                  </p>
+                  <p className="text-base text-neutral/70 font-medium">
+                    Genres
+                  </p>
                 </div>
               </div>
             </div>
@@ -241,9 +365,9 @@ export default function Admin() {
                 </thead>
                 <tbody>
                   {/* Sample book rows */}
-                  {currentBooks.map((book) => (
+                  {currentBooks.map((book, index) => (
                     <tr key={book.BookId}>
-                      <td>{book.BookId}</td>
+                      <td>{index + 1}</td>
                       <td>
                         <div className="avatar">
                           <div className="mask mask-squircle w-12 h-12">
@@ -265,22 +389,25 @@ export default function Admin() {
                         </div>
                       </td>
                       <td>
-                        <div className="font-medium">
-                          {getAuthorName(book.AuthorId) || "Unknown"}
-                        </div>
+                        <div className="font-medium">{book.AuthorName}</div>
                       </td>
                       <td>
                         <div className="badge badge-ghost badge-sm">
-                          {book.Genre?.Name || "N/A"}
+                          {book.GenreName}
                         </div>
                       </td>
                       <td>
-                        <div className="text-sm text-center">{book.PublicationYear}</div>
+                        <div className="text-sm text-center">
+                          {book.PublicationYear}
+                        </div>
                       </td>
                       <td>{new Date(book.CreatedAt).toLocaleDateString()}</td>
                       <td>
                         <div className="flex gap-2">
-                          <button className="btn btn-ghost btn-xs">
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            onClick={() => handleEditBook(book)}
+                          >
                             <svg
                               className="w-4 h-4"
                               fill="none"
@@ -295,7 +422,10 @@ export default function Admin() {
                               />
                             </svg>
                           </button>
-                          <button className="btn btn-ghost btn-xs text-error">
+                          <button
+                            className="btn btn-ghost btn-xs text-error"
+                            onClick={() => handleDeleteBook(book)}
+                          >
                             <svg
                               className="w-4 h-4"
                               fill="none"
@@ -355,9 +485,8 @@ export default function Admin() {
         </div>
 
         <div className="flex justify-between items-center mt-6 p-4 bg-base-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">Bulk Actions:</span>
-            <button className="btn btn-outline btn-sm">Delete Selected</button>
+          <div className="text-sm text-neutral/70">
+            Page {currentPage} of {totalPages}
           </div>
           <div className="text-sm text-neutral/70">
             Showing {indexOfFirstBook + 1}–
@@ -365,6 +494,30 @@ export default function Admin() {
           </div>
         </div>
       </div>
+      <AddModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddBook}
+        authors={authors}
+        genres={genres}
+      />
+
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleUpdateBook}
+        bookData={selectedBook}
+        authors={authors}
+        genres={genres}
+      />
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        bookData={bookToDelete}
+        loading={isDeleting}
+      />
     </div>
   );
 }

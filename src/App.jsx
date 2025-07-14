@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { ToastContainer } from 'react-toastify';
 import MainRoutes from "./app/routes/MainRoutes";
 
 function App() {
-  const [count, setCount] = useState(0);
 
-  return <MainRoutes />;
-}
+  return(
+    <>
+        <MainRoutes />;
+        <ToastContainer position="top-right" autoClose={3000}/>
+    </>
+    
+)}
 
 export default App;
