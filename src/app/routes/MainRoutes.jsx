@@ -19,6 +19,8 @@ import AuthContainer, { AuthLayout } from "../components/Auth";
 // 🆕 Error Boundary for React Query
 import { ErrorBoundary } from "react-error-boundary";
 import Categories from "../pages/Categories/Categories";
+import SearchResults from "../pages/SearchResults";
+import ScrollToTop from "../components/SrcollToTop/srcollToTop";
 
 // 🆕 Error Fallback Component
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -109,6 +111,7 @@ export default function MainRoutes() {
         }}
       >
         <BrowserRouter>
+          <ScrollToTop smooth={true} />
           <Routes>
             {/* Home Page */}
             <Route
@@ -170,7 +173,15 @@ export default function MainRoutes() {
                 </MainLayout>
               }
             />
-            Category/Genre Routes - Consolidated
+            {/* 🆕 Search Results Page */}
+            <Route
+              path="/search"
+              element={
+                <MainLayout>
+                  <SearchResults />
+                </MainLayout>
+              }
+            />
             <Route
               path="/categories"
               element={

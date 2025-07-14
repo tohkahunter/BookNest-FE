@@ -15,6 +15,7 @@ const BookSearch = ({
   placeholder = "Tìm kiếm sách theo tên, tác giả...",
   className = "",
   genres = [],
+  allBooks = [], // 🆕 Add allBooks prop to access all books for genre filtering
 }) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [selectedGenre, setSelectedGenre] = useState("all");
@@ -41,7 +42,7 @@ const BookSearch = ({
     switch (sortOption) {
       case "title":
         return sortedBooks.sort((a, b) =>
-          (a.title || "").localeCompare(b.title || "")
+          (a.title || a.Title || "").localeCompare(b.title || b.Title || "")
         );
       case "author":
         return sortedBooks.sort((a, b) =>
@@ -51,11 +52,15 @@ const BookSearch = ({
         );
       case "year":
         return sortedBooks.sort(
-          (a, b) => (b.publicationYear || 0) - (a.publicationYear || 0)
+          (a, b) =>
+            (b.publicationYear || b.PublicationYear || 0) -
+            (a.publicationYear || a.PublicationYear || 0)
         );
       case "rating":
         return sortedBooks.sort(
-          (a, b) => (b.averageRating || 0) - (a.averageRating || 0)
+          (a, b) =>
+            (b.averageRating || b.AverageRating || 0) -
+            (a.averageRating || a.AverageRating || 0)
         );
       case "recent":
         return sortedBooks.sort((a, b) => {
@@ -92,8 +97,18 @@ const BookSearch = ({
   const processedResults = useMemo(() => {
     let results = [];
 
-    // Determine which data to use
-    if (quickSearchType === "recent" && recentBooks) {
+    // 🔧 If genre is selected but no search term, show all books of that genre
+    if (selectedGenre !== "all" && !debouncedSearchTerm && !quickSearchType) {
+      results = allBooks.filter(
+        (book) =>
+          book.genre?.genreId === parseInt(selectedGenre) ||
+          book.genreId === parseInt(selectedGenre) ||
+          book.Genre?.GenreId === parseInt(selectedGenre) ||
+          book.GenreId === parseInt(selectedGenre)
+      );
+    }
+    // Determine which data to use based on search/quick search
+    else if (quickSearchType === "recent" && recentBooks) {
       results = recentBooks;
     } else if (quickSearchType === "popular" && popularBooks) {
       results = popularBooks;
@@ -102,19 +117,21 @@ const BookSearch = ({
     } else if (debouncedSearchTerm && searchResults) {
       results = searchResults;
     } else if (!debouncedSearchTerm && popularBooks) {
-      // Default to popular books when no search term
+      // Default to popular books when no search term and no genre filter
       results = popularBooks;
     }
 
     if (!results || !Array.isArray(results)) return [];
 
-    // Apply genre filter if selected
+    // Apply genre filter if selected AND we have search results
     let filteredResults = results;
-    if (selectedGenre !== "all") {
+    if (selectedGenre !== "all" && (debouncedSearchTerm || quickSearchType)) {
       filteredResults = results.filter(
         (book) =>
           book.genre?.genreId === parseInt(selectedGenre) ||
-          book.genreId === parseInt(selectedGenre)
+          book.genreId === parseInt(selectedGenre) ||
+          book.Genre?.GenreId === parseInt(selectedGenre) ||
+          book.GenreId === parseInt(selectedGenre)
       );
     }
 
@@ -128,7 +145,8 @@ const BookSearch = ({
     debouncedSearchTerm,
     selectedGenre,
     sortBy,
-    applySorting, // ✅ Now properly included in dependencies
+    allBooks, // 🆕 Add allBooks dependency
+    applySorting,
   ]);
 
   // 🆕 Combined loading state
@@ -137,9 +155,24 @@ const BookSearch = ({
   // 🔄 Effect to notify parent of results changes
   useEffect(() => {
     if (onSearchResults) {
-      const searchTermToReport = quickSearchType
-        ? `Tìm kiếm: ${quickSearchType}`
-        : debouncedSearchTerm;
+      let searchTermToReport = "";
+
+      // Determine what to report as search term
+      if (quickSearchType) {
+        searchTermToReport = `Tìm kiếm: ${quickSearchType}`;
+      } else if (debouncedSearchTerm) {
+        searchTermToReport = debouncedSearchTerm;
+      } else if (selectedGenre !== "all") {
+        // 🆕 Report genre selection as search term
+        const selectedGenreObj = genres.find(
+          (g) => (g.GenreId || g.genreId || g.id) === parseInt(selectedGenre)
+        );
+        searchTermToReport = `Books in ${
+          selectedGenreObj?.GenreName ||
+          selectedGenreObj?.genreName ||
+          "Selected Genre"
+        }`;
+      }
 
       onSearchResults(
         processedResults,
@@ -151,6 +184,8 @@ const BookSearch = ({
     processedResults,
     debouncedSearchTerm,
     quickSearchType,
+    selectedGenre, // 🆕 Add selectedGenre as dependency
+    genres, // 🆕 Add genres as dependency
     searchError,
     onSearchResults,
   ]);
@@ -158,14 +193,36 @@ const BookSearch = ({
   // 🔄 Effect to notify parent of search term changes
   useEffect(() => {
     if (onSearchTermChange) {
-      onSearchTermChange(debouncedSearchTerm);
+      // 🆕 Also notify when genre is selected (not just search term)
+      if (debouncedSearchTerm) {
+        onSearchTermChange(debouncedSearchTerm);
+      } else if (selectedGenre !== "all") {
+        const selectedGenreObj = genres.find(
+          (g) => (g.GenreId || g.genreId || g.id) === parseInt(selectedGenre)
+        );
+        onSearchTermChange(
+          `Books in ${
+            selectedGenreObj?.GenreName ||
+            selectedGenreObj?.genreName ||
+            "Selected Genre"
+          }`
+        );
+      } else {
+        onSearchTermChange("");
+      }
     }
-  }, [debouncedSearchTerm, onSearchTermChange]);
+  }, [debouncedSearchTerm, selectedGenre, genres, onSearchTermChange]);
 
   // Handle genre filter change
   const handleGenreChange = useCallback((genreId) => {
     setSelectedGenre(genreId);
     setQuickSearchType(null); // Clear quick search when filtering
+
+    // 🆕 If selecting a specific genre, clear search term to show all books of that genre
+    if (genreId !== "all") {
+      setSearchTerm("");
+      setDebouncedSearchTerm("");
+    }
   }, []);
 
   // Handle sort change
@@ -176,6 +233,7 @@ const BookSearch = ({
   // Clear all filters
   const clearFilters = useCallback(() => {
     setSearchTerm("");
+    setDebouncedSearchTerm(""); // 🆕 Also clear debounced term
     setSelectedGenre("all");
     setSortBy("relevance");
     setQuickSearchType(null);
@@ -281,14 +339,23 @@ const BookSearch = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="all">Tất cả thể loại</option>
-                {genres.map((genre) => (
-                  <option
-                    key={genre.genreId || genre.id}
-                    value={genre.genreId || genre.id}
-                  >
-                    {genre.genreName || genre.name}
-                  </option>
-                ))}
+                {Array.isArray(genres) && genres.length > 0 ? (
+                  genres.map((genre) => {
+                    // 🔧 Handle both API formats (GenreId/GenreName vs genreId/genreName)
+                    const genreId = genre.GenreId || genre.genreId || genre.id;
+                    const genreName =
+                      genre.GenreName || genre.genreName || genre.name;
+                    const bookCount = genre.BookCount || genre.bookCount || 0;
+
+                    return (
+                      <option key={genreId} value={genreId}>
+                        {genreName} {bookCount > 0 && `(${bookCount})`}
+                      </option>
+                    );
+                  })
+                ) : (
+                  <option disabled>Loading genres...</option>
+                )}
               </select>
             </div>
 
@@ -390,18 +457,6 @@ const BookSearch = ({
           </div>
         )}
       </div>
-
-      {/* 🆕 Debug info in development */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-          <div>Search term: "{debouncedSearchTerm}"</div>
-          <div>Quick search: {quickSearchType || "none"}</div>
-          <div>Genre filter: {selectedGenre}</div>
-          <div>Sort by: {sortBy}</div>
-          <div>Results: {processedResults?.length || 0}</div>
-          <div>Loading: {isLoading.toString()}</div>
-        </div>
-      )}
     </div>
   );
 };

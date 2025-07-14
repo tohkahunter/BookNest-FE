@@ -11,8 +11,9 @@ export const QUERY_KEYS = {
   BOOKS_POPULAR: (limit) => ["books", "popular", limit],
   BOOKS_RECENT: (limit) => ["books", "recent", limit],
 
-  //genre
+  // Genres
   GENRES: ["genres"],
+  GENRE: (id) => ["genre", id],
 
   // Authors
   AUTHORS: ["authors"],

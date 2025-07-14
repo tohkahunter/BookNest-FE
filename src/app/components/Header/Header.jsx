@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { SimpleBookSearch } from "../book/BookSearch";
+import SimpleBookSearch from "../book/SimpleBookSearch"; // ← FIXED IMPORT
 
 const Header = () => {
   const navigate = useNavigate();
@@ -17,11 +17,7 @@ const Header = () => {
   const communityDropdownRef = useRef(null);
   const userDropdownRef = useRef(null);
 
-  const handleSearch = (searchTerm) => {
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-    }
-  };
+  // REMOVED handleSearch function - không cần nữa!
 
   const handleLogout = async () => {
     const result = await logout();
@@ -198,7 +194,7 @@ const Header = () => {
                       Authors
                     </Link>
                     <Link
-                      to="/genres"
+                      to="/search?view=genres"
                       className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 hover:text-gray-900 transition-colors duration-200"
                       onClick={() => setShowBrowseDropdown(false)}
                     >
@@ -355,16 +351,15 @@ const Header = () => {
             </div>
           </nav>
 
-          {/* Search Bar */}
+          {/* Search Bar - UPDATED */}
           <div className="flex-1 max-w-xl mx-8">
             <SimpleBookSearch
-              onSearch={handleSearch}
               placeholder="Search for books, authors..."
               className="w-full"
             />
           </div>
 
-          {/* Right side - User/Sign In */}
+          {/* Right side - User/Sign In unchanged... */}
           <div className="flex items-center space-x-3">
             {/* User Section */}
             {isAuthenticated ? (
@@ -552,18 +547,13 @@ const Header = () => {
           </div>
         </div>
       </div>
-
       {/* Mobile Navigation */}
       {showMobileMenu && (
         <div className="md:hidden bg-white border-t border-gray-200 shadow-lg animate-in slide-in-from-top-2 duration-200">
           <div className="px-4 py-3 space-y-1">
-            {/* Mobile Search */}
+            {/* Mobile Search - UPDATED */}
             <div className="pb-3 border-b border-gray-100">
               <SimpleBookSearch
-                onSearch={(term) => {
-                  handleSearch(term);
-                  setShowMobileMenu(false);
-                }}
                 placeholder="Search books..."
                 className="w-full"
               />
@@ -660,7 +650,7 @@ const Header = () => {
                 Authors
               </Link>
               <Link
-                to="/genres"
+                to="/search?view=genres"
                 className="flex items-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 py-2 px-3 rounded-lg transition-colors duration-200 text-sm"
                 onClick={() => setShowMobileMenu(false)}
               >
@@ -860,5 +850,4 @@ const Header = () => {
     </header>
   );
 };
-
 export default Header;
