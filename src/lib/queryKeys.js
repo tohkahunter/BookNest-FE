@@ -24,10 +24,10 @@ export const QUERY_KEYS = {
 
   // Bookshelf - User specific data
   USER_BOOKS: ["user-books"],
-  USER_BOOK: (bookId) => ["user-book", bookId], // ✅ Thiếu key này
+  USER_BOOK: (bookId) => ["user-book", bookId],
   USER_SHELVES: ["user-shelves"],
-  BOOKS_BY_STATUS: (statusId) => ["books", "status", statusId], // ✅ Thiếu key này
-  BOOKS_BY_SHELF: (shelfId) => ["books", "shelf", shelfId], // ✅ Thiếu key này
+  BOOKS_BY_STATUS: (statusId) => ["books", "status", statusId],
+  BOOKS_BY_SHELF: (shelfId) => ["books", "shelf", shelfId],
   READING_STATUS: ["reading-status"],
   BOOK_IN_LIBRARY: (bookId) => ["book-in-library", bookId],
 

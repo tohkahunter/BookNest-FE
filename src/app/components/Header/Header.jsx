@@ -194,7 +194,7 @@ const Header = () => {
                       Authors
                     </Link>
                     <Link
-                      to="/search?view=genres"
+                      to="/genres"
                       className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 hover:text-gray-900 transition-colors duration-200"
                       onClick={() => setShowBrowseDropdown(false)}
                     >
@@ -214,7 +214,7 @@ const Header = () => {
                       Genres
                     </Link>
                     <Link
-                      to="/popular"
+                      to="/popular-books"
                       className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 hover:text-gray-900 transition-colors duration-200"
                       onClick={() => setShowBrowseDropdown(false)}
                     >
@@ -234,7 +234,7 @@ const Header = () => {
                       Popular Books
                     </Link>
                     <Link
-                      to="/new-releases"
+                      to="/recent-books"
                       className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 hover:text-gray-900 transition-colors duration-200"
                       onClick={() => setShowBrowseDropdown(false)}
                     >
@@ -251,7 +251,7 @@ const Header = () => {
                           d="M13 10V3L4 14h7v7l9-11h-7z"
                         />
                       </svg>
-                      New Releases
+                      Recent Books
                     </Link>
                   </div>
                 </div>

@@ -1,467 +1,275 @@
-// src/app/pages/Genres/GenresList.jsx
+// src/app/pages/GenreList/GenreList.jsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { genreService } from "../../../services/genreService";
+import { QUERY_KEYS } from "../../../lib/queryKeys";
 
-export default function GenresList() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+function GenreList() {
+  const [sortBy, setSortBy] = useState("name");
 
-  const genres = [
-    // Fiction genres
-    {
-      name: "Romance",
-      category: "fiction",
-      count: 1250,
-      description: "Love stories and romantic relationships",
-      color: "bg-pink-100 text-pink-700 border-pink-200",
-      icon: "💕",
-    },
-    {
-      name: "Mystery",
-      category: "fiction",
-      count: 890,
-      description: "Suspenseful stories with puzzles to solve",
-      color: "bg-purple-100 text-purple-700 border-purple-200",
-      icon: "🔍",
-    },
-    {
-      name: "Science Fiction",
-      category: "fiction",
-      count: 756,
-      description: "Futuristic and speculative fiction",
-      color: "bg-blue-100 text-blue-700 border-blue-200",
-      icon: "🚀",
-    },
-    {
-      name: "Fantasy",
-      category: "fiction",
-      count: 634,
-      description: "Magical worlds and supernatural elements",
-      color: "bg-indigo-100 text-indigo-700 border-indigo-200",
-      icon: "🧙‍♂️",
-    },
-    {
-      name: "Thriller",
-      category: "fiction",
-      count: 523,
-      description: "Fast-paced, suspenseful stories",
-      color: "bg-red-100 text-red-700 border-red-200",
-      icon: "⚡",
-    },
-    {
-      name: "Historical Fiction",
-      category: "fiction",
-      count: 445,
-      description: "Stories set in the past",
-      color: "bg-amber-100 text-amber-700 border-amber-200",
-      icon: "🏛️",
-    },
-    {
-      name: "Contemporary Fiction",
-      category: "fiction",
-      count: 398,
-      description: "Modern-day stories and realistic situations",
-      color: "bg-green-100 text-green-700 border-green-200",
-      icon: "🏙️",
-    },
-    {
-      name: "Horror",
-      category: "fiction",
-      count: 287,
-      description: "Scary and frightening stories",
-      color: "bg-gray-100 text-gray-700 border-gray-200",
-      icon: "👻",
-    },
-
-    // Non-fiction genres
-    {
-      name: "Biography",
-      category: "nonfiction",
-      count: 678,
-      description: "Life stories of real people",
-      color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      icon: "👤",
-    },
-    {
-      name: "Self-Help",
-      category: "nonfiction",
-      count: 567,
-      description: "Personal development and improvement",
-      color: "bg-teal-100 text-teal-700 border-teal-200",
-      icon: "💪",
-    },
-    {
-      name: "History",
-      category: "nonfiction",
-      count: 489,
-      description: "Historical events and periods",
-      color: "bg-orange-100 text-orange-700 border-orange-200",
-      icon: "📜",
-    },
-    {
-      name: "Science",
-      category: "nonfiction",
-      count: 423,
-      description: "Scientific discoveries and research",
-      color: "bg-cyan-100 text-cyan-700 border-cyan-200",
-      icon: "🔬",
-    },
-    {
-      name: "Business",
-      category: "nonfiction",
-      count: 356,
-      description: "Business strategies and entrepreneurship",
-      color: "bg-slate-100 text-slate-700 border-slate-200",
-      icon: "💼",
-    },
-    {
-      name: "Health & Fitness",
-      category: "nonfiction",
-      count: 298,
-      description: "Wellness, diet, and exercise",
-      color: "bg-emerald-100 text-emerald-700 border-emerald-200",
-      icon: "🏃‍♂️",
-    },
-    {
-      name: "Travel",
-      category: "nonfiction",
-      count: 267,
-      description: "Travel guides and adventure stories",
-      color: "bg-sky-100 text-sky-700 border-sky-200",
-      icon: "✈️",
-    },
-    {
-      name: "Cooking",
-      category: "nonfiction",
-      count: 234,
-      description: "Recipes and culinary techniques",
-      color: "bg-rose-100 text-rose-700 border-rose-200",
-      icon: "👨‍🍳",
-    },
-
-    // Other genres
-    {
-      name: "Poetry",
-      category: "other",
-      count: 189,
-      description: "Poems and verse collections",
-      color: "bg-violet-100 text-violet-700 border-violet-200",
-      icon: "📝",
-    },
-    {
-      name: "Art",
-      category: "other",
-      count: 156,
-      description: "Art history and visual arts",
-      color: "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200",
-      icon: "🎨",
-    },
-    {
-      name: "Music",
-      category: "other",
-      count: 134,
-      description: "Music theory and musician biographies",
-      color: "bg-lime-100 text-lime-700 border-lime-200",
-      icon: "🎵",
-    },
-    {
-      name: "Philosophy",
-      category: "other",
-      count: 123,
-      description: "Philosophical thoughts and theories",
-      color: "bg-stone-100 text-stone-700 border-stone-200",
-      icon: "🤔",
-    },
-  ];
-
-  const categories = [
-    { value: "all", label: "All Genres", count: genres.length },
-    {
-      value: "fiction",
-      label: "Fiction",
-      count: genres.filter((g) => g.category === "fiction").length,
-    },
-    {
-      value: "nonfiction",
-      label: "Non-Fiction",
-      count: genres.filter((g) => g.category === "nonfiction").length,
-    },
-    {
-      value: "other",
-      label: "Other",
-      count: genres.filter((g) => g.category === "other").length,
-    },
-  ];
-
-  const filteredGenres = genres.filter((genre) => {
-    const matchesSearch =
-      genre.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      genre.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" || genre.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+  // Fetch all genres
+  const {
+    data: genres = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: QUERY_KEYS.GENRES,
+    queryFn: genreService.getAllGenres,
   });
 
-  const totalBooks = genres.reduce((sum, genre) => sum + genre.count, 0);
+  // Get genre icon based on genre name
+  const getGenreIcon = (genreName) => {
+    const iconMap = {
+      Fantasy: "🧙‍♂️",
+      "Science Fiction": "🚀",
+      Mystery: "🔍",
+      Romance: "💖",
+      Horror: "👻",
+      Biography: "👤",
+      History: "📜",
+      "Self-Help": "💪",
+      Business: "💼",
+      Technology: "💻",
+      Health: "🏥",
+      Fiction: "📚",
+      "Non-Fiction": "📖",
+    };
+    return iconMap[genreName] || "📘";
+  };
+
+  // Get genre color based on genre name
+  const getGenreColor = (genreName) => {
+    const colorMap = {
+      Fantasy: "from-purple-400 to-purple-600",
+      "Science Fiction": "from-blue-400 to-blue-600",
+      Mystery: "from-gray-400 to-gray-600",
+      Romance: "from-pink-400 to-pink-600",
+      Horror: "from-red-400 to-red-600",
+      Biography: "from-green-400 to-green-600",
+      History: "from-amber-400 to-amber-600",
+      "Self-Help": "from-emerald-400 to-emerald-600",
+      Business: "from-indigo-400 to-indigo-600",
+      Technology: "from-cyan-400 to-cyan-600",
+      Health: "from-teal-400 to-teal-600",
+      Fiction: "from-orange-400 to-orange-600",
+      "Non-Fiction": "from-slate-400 to-slate-600",
+    };
+    return colorMap[genreName] || "from-orange-400 to-orange-600";
+  };
+
+  // Sort genres based on selected option
+  const sortedGenres = [...genres].sort((a, b) => {
+    switch (sortBy) {
+      case "name":
+        return a.GenreName.localeCompare(b.GenreName);
+      case "book-count":
+        return (b.BookCount || 0) - (a.BookCount || 0);
+      case "description":
+        return a.Description.localeCompare(b.Description);
+      default:
+        return 0;
+    }
+  });
+
+  // Calculate total stats
+  const totalStats = {
+    totalGenres: genres.length,
+    totalBooks: genres.reduce((sum, genre) => sum + (genre.BookCount || 0), 0),
+    averageBooksPerGenre:
+      genres.length > 0
+        ? Math.round(
+            genres.reduce((sum, genre) => sum + (genre.BookCount || 0), 0) /
+              genres.length
+          )
+        : 0,
+    popularGenres: genres.filter((genre) => (genre.BookCount || 0) > 0).length,
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Error Loading Genres
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Something went wrong while loading the genres. Please try again later.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Browse by Genre
-        </h1>
-        <p className="text-xl text-gray-600 mb-6">
-          Discover your next favorite book from our collection of{" "}
-          {totalBooks.toLocaleString()} books across all genres
-        </p>
+    <>
+      {/* Page Header */}
+      <div className="bg-white rounded-lg p-8 mb-8 shadow-sm">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Explore Book Genres
+          </h1>
+          <p className="text-lg text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            Discover your next favorite book by exploring our diverse collection
+            of genres. From thrilling mysteries to epic fantasies, find the
+            perfect story for every mood.
+          </p>
+        </div>
 
-        {/* Search */}
-        <div className="max-w-md mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search genres..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600">
+              {totalStats.totalGenres}
             </div>
+            <div className="text-sm text-gray-600">Total Genres</div>
           </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600">
+              {totalStats.totalBooks}
+            </div>
+            <div className="text-sm text-gray-600">Total Books</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600">
+              {totalStats.averageBooksPerGenre}
+            </div>
+            <div className="text-sm text-gray-600">Avg Books/Genre</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-orange-600">
+              {totalStats.popularGenres}
+            </div>
+            <div className="text-sm text-gray-600">Active Genres</div>
+          </div>
+        </div>
+
+        {/* Sort Options */}
+        <div className="flex items-center justify-center space-x-4">
+          <label className="text-sm font-medium text-gray-700">Sort by:</label>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className=" text-gray-700 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+          >
+            <option value="name">Genre Name</option>
+            <option value="book-count">Book Count</option>
+            <option value="description">Description</option>
+          </select>
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex flex-wrap justify-center gap-4 mb-8">
-        {categories.map((category) => (
-          <button
-            key={category.value}
-            onClick={() => setSelectedCategory(category.value)}
-            className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
-              selectedCategory === category.value
-                ? "bg-amber-100 text-amber-700 border-2 border-amber-300"
-                : "bg-white text-gray-600 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            {category.label} ({category.count})
-          </button>
-        ))}
-      </div>
-
-      {/* Stats */}
-      <div className="text-center mb-8">
-        <p className="text-gray-600">
-          Showing {filteredGenres.length} genre
-          {filteredGenres.length !== 1 ? "s" : ""}
-          {searchTerm && ` matching "${searchTerm}"`}
-        </p>
-      </div>
-
       {/* Genres Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredGenres.map((genre) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {sortedGenres.map((genre) => (
           <Link
-            key={genre.name}
-            to={`/genres/${genre.name.toLowerCase().replace(/\s+/g, "-")}`}
-            className="group"
+            key={genre.GenreId}
+            to={`/genres/${genre.GenreId}`}
+            className="group bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200 hover:border-orange-300 transform hover:-translate-y-1"
           >
+            {/* Genre Header with Icon */}
             <div
-              className={`h-full p-6 rounded-xl border-2 transition-all duration-200 hover:shadow-lg hover:scale-105 ${genre.color}`}
+              className={`bg-gradient-to-br ${getGenreColor(
+                genre.GenreName
+              )} p-6 text-center`}
             >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-3xl">{genre.icon}</span>
-                <span className="text-sm font-medium opacity-75">
-                  {genre.count} books
-                </span>
+              <div className="text-4xl mb-3">
+                {getGenreIcon(genre.GenreName)}
               </div>
-
-              <h3 className="text-xl font-bold mb-2 group-hover:underline">
-                {genre.name}
+              <h3 className="text-xl font-bold text-white mb-2">
+                {genre.GenreName}
               </h3>
+              <div className="bg-white bg-opacity-20 rounded-full px-3 py-1 text-gray-700 text-sm font-medium">
+                {genre.BookCount || 0} book
+                {(genre.BookCount || 0) !== 1 ? "s" : ""}
+              </div>
+            </div>
 
-              <p className="text-sm opacity-80 line-clamp-2">
-                {genre.description}
+            {/* Genre Content */}
+            <div className="p-6">
+              <p className="text-gray-600 leading-relaxed mb-4 line-clamp-3">
+                {genre.Description}
               </p>
 
-              <div className="mt-4 flex items-center text-sm font-medium opacity-75">
-                <span>Explore</span>
-                <svg
-                  className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+              {/* Genre Stats */}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">
+                  {genre.BookCount > 0 ? "Available books" : "Coming soon"}
+                </span>
+                <div className="flex items-center text-orange-600 group-hover:text-orange-700 transition-colors">
+                  <span className="font-medium">Explore</span>
+                  <svg
+                    className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
           </Link>
         ))}
       </div>
 
-      {/* Empty state */}
-      {filteredGenres.length === 0 && (
-        <div className="text-center py-12">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400 mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.515-.932-6.172-2.828A7.962 7.962 0 014 9c0-4.418 3.582-8 8-8s8 3.582 8 8c0 1.306-.315 2.54-.876 3.631z"
-            />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No genres found
+      {/* Empty State */}
+      {genres.length === 0 && !isLoading && (
+        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+          <div className="text-6xl mb-4">📚</div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            No Genres Available
           </h3>
-          <p className="text-gray-600">
-            Try adjusting your search or filter to find what you're looking for.
+          <p className="text-gray-500">
+            Genres will appear here once they are added to the system.
           </p>
-          <button
-            onClick={() => {
-              setSearchTerm("");
-              setSelectedCategory("all");
-            }}
-            className="mt-4 px-4 py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors"
-          >
-            Clear filters
-          </button>
         </div>
       )}
 
-      {/* Popular combinations */}
-      <div className="mt-16">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Popular Genre Combinations
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-lg border border-purple-200">
-            <h3 className="font-semibold text-purple-800 mb-2">
-              Romantic Fantasy
-            </h3>
-            <p className="text-sm text-purple-700">Romance + Fantasy books</p>
+      {/* Call to Action */}
+      {genres.length > 0 && (
+        <div className="mt-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg p-8 text-center text-white">
+          <h3 className="text-2xl font-bold mb-4">
+            Can't Find Your Favorite Genre?
+          </h3>
+          <p className="text-lg mb-6 opacity-90">
+            Our collection is always growing. Check back regularly for new
+            genres and books!
+          </p>
+          <div className="flex items-center justify-center space-x-4">
             <Link
-              to="/genres/romantic-fantasy"
-              className="text-purple-600 text-sm font-medium hover:underline"
+              to="/"
+              className="bg-white text-orange-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
             >
-              Browse collection →
+              Browse All Books
             </Link>
-          </div>
-
-          <div className="bg-gradient-to-r from-blue-100 to-indigo-100 p-4 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-2">
-              Sci-Fi Thriller
-            </h3>
-            <p className="text-sm text-blue-700">
-              Science Fiction + Thriller books
-            </p>
-            <Link
-              to="/genres/sci-fi-thriller"
-              className="text-blue-600 text-sm font-medium hover:underline"
-            >
-              Browse collection →
-            </Link>
-          </div>
-
-          <div className="bg-gradient-to-r from-amber-100 to-orange-100 p-4 rounded-lg border border-amber-200">
-            <h3 className="font-semibold text-amber-800 mb-2">
-              Historical Mystery
-            </h3>
-            <p className="text-sm text-amber-700">
-              Historical Fiction + Mystery books
-            </p>
-            <Link
-              to="/genres/historical-mystery"
-              className="text-amber-600 text-sm font-medium hover:underline"
-            >
-              Browse collection →
-            </Link>
+            <button className="border border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-orange-600 transition-colors">
+              Suggest a Genre
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Featured genres */}
-      <div className="mt-16 bg-gray-50 rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          This Month's Featured Genres
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🌱</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">
-              Environmental Science
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Books about climate change and sustainability
-            </p>
-            <Link
-              to="/genres/environmental-science"
-              className="text-green-600 font-medium hover:underline"
-            >
-              Discover books
-            </Link>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🧠</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Psychology</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Understanding the human mind and behavior
-            </p>
-            <Link
-              to="/genres/psychology"
-              className="text-purple-600 font-medium hover:underline"
-            >
-              Discover books
-            </Link>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🚀</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">
-              Space Exploration
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Journey to the stars and beyond
-            </p>
-            <Link
-              to="/genres/space-exploration"
-              className="text-blue-600 font-medium hover:underline"
-            >
-              Discover books
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }
+
+export default GenreList;

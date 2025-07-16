@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useBooks, useAuthors, useGenres, useAuth } from "../../hooks/index";
@@ -169,64 +168,188 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-orange-500 to-red-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Modern Animated Banner */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-100 to-amber-100 ">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -left-40 w-80 h-80 bg-amber-200 opacity-20 rounded-full animate-pulse"></div>
+          <div
+            className="absolute top-20 right-20 w-60 h-60 bg-amber-200 opacity-30 rounded-full animate-bounce"
+            style={{ animationDuration: "3s" }}
+          ></div>
+          <div
+            className="absolute bottom-20 left-20 w-40 h-40 bg-amber-200 opacity-40 rounded-full animate-ping"
+            style={{ animationDuration: "2s" }}
+          ></div>
+
+          {/* Real Book Images with Modern Animations */}
+          <div className="absolute top-16 left-12 transform rotate-12 animate-book-float-1">
+            <img
+              src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=150&fit=crop"
+              alt="Book"
+              className="w-16 h-24 rounded shadow-2xl opacity-80 hover:opacity-100 transition-all duration-500 hover:scale-110 hover:rotate-6"
+            />
+          </div>
+          <div
+            className="absolute bottom-32 right-16 transform -rotate-6 animate-book-drift"
+            style={{ animationDelay: "1s" }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=150&fit=crop"
+              alt="Book"
+              className="w-20 h-30 rounded shadow-2xl opacity-70 hover:opacity-100 transition-all duration-700 hover:scale-125 hover:-rotate-12 filter hover:brightness-110"
+            />
+          </div>
+          <div
+            className="absolute top-32 right-1/4 transform rotate-45 animate-book-wobble"
+            style={{ animationDelay: "2s" }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=80&h=120&fit=crop"
+              alt="Book"
+              className="w-12 h-18 rounded shadow-2xl opacity-60 hover:opacity-100 transition-all duration-600 hover:scale-150 hover:rotate-90 hover:shadow-purple-500/50"
+            />
+          </div>
+          <div
+            className="absolute bottom-48 left-1/3 transform -rotate-12 animate-book-pulse"
+            style={{ animationDelay: "0.5s" }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=90&h=135&fit=crop"
+              alt="Book"
+              className="w-14 h-20 rounded shadow-2xl opacity-75 hover:opacity-100 transition-all duration-500 hover:scale-120 hover:rotate-3 hover:shadow-blue-500/30"
+            />
+          </div>
+          <div
+            className="absolute top-48 left-1/4 transform rotate-6 animate-book-swing"
+            style={{ animationDelay: "1.5s" }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=85&h=128&fit=crop"
+              alt="Book"
+              className="w-13 h-19 rounded shadow-2xl opacity-65 hover:opacity-100 transition-all duration-800 hover:scale-130 hover:-rotate-15 hover:shadow-indigo-500/40"
+            />
+          </div>
+
+          {/* Floating Books with Trail Effect */}
+          <div
+            className="absolute top-20 left-1/2 animate-book-orbit"
+            style={{ animationDelay: "0.8s" }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=70&h=105&fit=crop"
+              alt="Book"
+              className="w-10 h-15 rounded shadow-xl opacity-50 hover:opacity-100 transition-all duration-1000 hover:scale-200"
+            />
+          </div>
+
+          {/* Morphing Book */}
+          <div
+            className="absolute bottom-40 left-16 animate-book-morph"
+            style={{ animationDelay: "2.5s" }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=75&h=113&fit=crop"
+              alt="Book"
+              className="w-11 h-16 rounded shadow-xl opacity-55 hover:opacity-100 transition-all duration-900 hover:scale-175 hover:skew-x-12"
+            />
+          </div>
+
+          {/* Reading Person with Parallax */}
+          <div
+            className="absolute bottom-16 right-1/4 animate-parallax-float"
+            style={{ animationDelay: "0.8s" }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=faces"
+              alt="Person reading"
+              className="w-24 h-24 rounded-full shadow-2xl opacity-40 hover:opacity-70 transition-all duration-1000 hover:scale-110 filter hover:sepia-0"
+            />
+          </div>
+
+          {/* Animated Gradient Waves */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 transform -skew-y-6 animate-pulse"></div>
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Discover your next great read
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-orange-100 max-w-3xl mx-auto">
-              Track books you've read, find new ones, and connect with fellow
-              book lovers
+            {/* Main Title with Animation */}
+            <div className="mb-8">
+              <h1 className="text-6xl md:text-7xl font-black mb-4 text-slate-700 leading-tight">
+                <span
+                  className="inline-block animate-fade-in-up"
+                  style={{ animationDelay: "0.2s" }}
+                >
+                  Book
+                </span>
+                <span
+                  className="inline-block bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent animate-fade-in-up"
+                  style={{ animationDelay: "0.4s" }}
+                >
+                  Nest
+                </span>
+              </h1>
+              <div
+                className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto rounded-full animate-scale-in"
+                style={{ animationDelay: "0.6s" }}
+              ></div>
+            </div>
+
+            {/* Subtitle */}
+            <p
+              className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto mb-16 leading-relaxed animate-fade-in-up"
+              style={{ animationDelay: "0.8s" }}
+            >
+              Your personal reading sanctuary where stories come alive and book
+              lovers unite
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <div
+              className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up"
+              style={{ animationDelay: "1s" }}
+            >
               <Link
-                to="/search"
-                className="bg-white text-orange-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-orange-50 transition-colors shadow-lg"
+                to="/books"
+                className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-5 rounded-2xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-xl transform hover:scale-105 hover:shadow-blue-200/50"
               >
-                🔍 Start Exploring Books
+                <span className="flex items-center justify-center">
+                  <span className="mr-3 group-hover:animate-bounce text-xl">
+                    📚
+                  </span>
+                  Explore Library
+                </span>
               </Link>
               {!isAuthenticated && (
                 <Link
                   to="/register"
-                  className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-orange-600 transition-colors"
+                  className="group border-2 border-slate-300 text-slate-700 px-12 py-5 rounded-2xl font-bold text-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
-                  Join BookNest Free
+                  <span className="flex items-center justify-center">
+                    <span className="mr-3 group-hover:animate-bounce text-xl">
+                      ✨
+                    </span>
+                    Join BookNest
+                  </span>
                 </Link>
               )}
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold mb-2">
-                  {books.length.toLocaleString()}
-                </div>
-                <div className="text-orange-200">Books</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold mb-2">
-                  {authors.length.toLocaleString()}
-                </div>
-                <div className="text-orange-200">Authors</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold mb-2">
-                  {genres.length}
-                </div>
-                <div className="text-orange-200">Genres</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold mb-2">
-                  {genreStats.totalBooks?.toLocaleString() || "0"}
-                </div>
-                <div className="text-orange-200">Total Books</div>
-              </div>
-            </div>
           </div>
+        </div>
+
+        {/* Bottom Wave */}
+        <div className="absolute bottom-0 left-0 w-full">
+          <svg
+            viewBox="0 0 1440 120"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-20"
+          >
+            <path
+              d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
+              fill="#FEF3F2"
+            />
+          </svg>
         </div>
       </section>
 
@@ -292,7 +415,7 @@ const Home = () => {
                 {featuredBooks.map((book) => (
                   <Link
                     key={book.BookId}
-                    to={`/book/${book.BookId}`}
+                    to={`/books/${book.BookId}`}
                     className="group cursor-pointer"
                   >
                     <div className="mb-3">
@@ -363,7 +486,7 @@ const Home = () => {
                 {recentBooks.slice(0, 6).map((book) => (
                   <Link
                     key={book.BookId}
-                    to={`/book/${book.BookId}`}
+                    to={`/books/${book.BookId}`}
                     className="block p-8 hover:bg-orange-25 transition-colors group"
                   >
                     <div className="flex items-start space-x-6">
@@ -463,7 +586,7 @@ const Home = () => {
                 {popularAuthors.map((author) => (
                   <Link
                     key={author.AuthorId}
-                    to={`/author/${author.AuthorId}`}
+                    to={`/authors/${author.AuthorId}`}
                     className="group flex items-center space-x-6 p-6 rounded-lg hover:bg-orange-50 transition-colors"
                   >
                     <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
@@ -524,6 +647,186 @@ const Home = () => {
           </section>
         )}
       </div>
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes scale-in {
+          from {
+            transform: scaleX(0);
+          }
+          to {
+            transform: scaleX(1);
+          }
+        }
+
+        @keyframes book-float-1 {
+          0%,
+          100% {
+            transform: translateY(0px) rotate(12deg) scale(1);
+          }
+          33% {
+            transform: translateY(-15px) rotate(18deg) scale(1.05);
+          }
+          66% {
+            transform: translateY(-8px) rotate(6deg) scale(0.98);
+          }
+        }
+
+        @keyframes book-drift {
+          0%,
+          100% {
+            transform: translateX(0px) translateY(0px) rotate(-6deg);
+          }
+          25% {
+            transform: translateX(10px) translateY(-12px) rotate(-12deg);
+          }
+          50% {
+            transform: translateX(-5px) translateY(-8px) rotate(0deg);
+          }
+          75% {
+            transform: translateX(8px) translateY(-15px) rotate(-18deg);
+          }
+        }
+
+        @keyframes book-wobble {
+          0%,
+          100% {
+            transform: rotate(45deg) scale(1);
+          }
+          25% {
+            transform: rotate(50deg) scale(1.1) translateY(-5px);
+          }
+          50% {
+            transform: rotate(40deg) scale(0.95) translateY(-10px);
+          }
+          75% {
+            transform: rotate(55deg) scale(1.05) translateY(-3px);
+          }
+        }
+
+        @keyframes book-pulse {
+          0%,
+          100% {
+            transform: rotate(-12deg) scale(1);
+            filter: brightness(1);
+          }
+          50% {
+            transform: rotate(-8deg) scale(1.15);
+            filter: brightness(1.2);
+          }
+        }
+
+        @keyframes book-swing {
+          0%,
+          100% {
+            transform: rotate(6deg) translateX(0px);
+          }
+          25% {
+            transform: rotate(12deg) translateX(8px) translateY(-5px);
+          }
+          50% {
+            transform: rotate(-3deg) translateX(-6px) translateY(-12px);
+          }
+          75% {
+            transform: rotate(15deg) translateX(12px) translateY(-8px);
+          }
+        }
+
+        @keyframes book-orbit {
+          0% {
+            transform: rotate(0deg) translateX(30px) rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg) translateX(30px) rotate(-360deg);
+          }
+        }
+
+        @keyframes book-morph {
+          0%,
+          100% {
+            transform: rotate(0deg) scaleX(1) scaleY(1);
+            border-radius: 4px;
+          }
+          25% {
+            transform: rotate(5deg) scaleX(1.1) scaleY(0.9);
+            border-radius: 8px;
+          }
+          50% {
+            transform: rotate(-3deg) scaleX(0.9) scaleY(1.1);
+            border-radius: 12px;
+          }
+          75% {
+            transform: rotate(8deg) scaleX(1.05) scaleY(0.95);
+            border-radius: 6px;
+          }
+        }
+
+        @keyframes parallax-float {
+          0%,
+          100% {
+            transform: translateY(0px) translateX(0px) scale(1);
+          }
+          33% {
+            transform: translateY(-8px) translateX(-4px) scale(1.02);
+          }
+          66% {
+            transform: translateY(-12px) translateX(6px) scale(0.98);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 0.8s ease-out forwards;
+          opacity: 0;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.6s ease-out forwards;
+          transform: scaleX(0);
+        }
+
+        .animate-book-float-1 {
+          animation: book-float-1 4s ease-in-out infinite;
+        }
+
+        .animate-book-drift {
+          animation: book-drift 6s ease-in-out infinite;
+        }
+
+        .animate-book-wobble {
+          animation: book-wobble 3s ease-in-out infinite;
+        }
+
+        .animate-book-pulse {
+          animation: book-pulse 2.5s ease-in-out infinite;
+        }
+
+        .animate-book-swing {
+          animation: book-swing 5s ease-in-out infinite;
+        }
+
+        .animate-book-orbit {
+          animation: book-orbit 8s linear infinite;
+        }
+
+        .animate-book-morph {
+          animation: book-morph 4s ease-in-out infinite;
+        }
+
+        .animate-parallax-float {
+          animation: parallax-float 7s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };

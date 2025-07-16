@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Routes, Route } from "react-router-dom";
@@ -22,6 +21,12 @@ import { ErrorBoundary } from "react-error-boundary";
 import Categories from "../pages/Categories/Categories";
 import SearchResults from "../pages/SearchResults";
 import ScrollToTop from "../components/SrcollToTop/srcollToTop";
+import AuthorDetail from "../pages/Author/AuthorDetail";
+import GenreDetail from "../pages/Genres/GenresDetail";
+import AuthorList from "../pages/Author/AuthorList";
+import BookPopular from "../components/book/BookPopular";
+import BookRecent from "../components/book/BookRecent";
+import AllBooks from "../components/book/AllBooks";
 
 // 🆕 Error Fallback Component
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -141,15 +146,7 @@ export default function MainRoutes() {
                 </AuthLayout>
               }
             />
-            {/* Book Routes */}
-            <Route
-              path="/book/:id"
-              element={
-                <MainLayout>
-                  <BookDetail />
-                </MainLayout>
-              }
-            />
+
             {/* 🆕 Alternative book routes */}
             <Route
               path="/books/:id"
@@ -164,13 +161,7 @@ export default function MainRoutes() {
               path="/books"
               element={
                 <MainLayout>
-                  {/* TODO: Create BooksPage component */}
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Tất cả sách</h1>
-                    <p className="text-gray-600">
-                      Trang này đang được phát triển
-                    </p>
-                  </div>
+                  <AllBooks />
                 </MainLayout>
               }
             />
@@ -183,22 +174,16 @@ export default function MainRoutes() {
                 </MainLayout>
               }
             />
+
             <Route
-              path="/categories"
+              path="/recent-books"
               element={
                 <MainLayout>
-                  <GenresList />
+                  <BookRecent />
                 </MainLayout>
               }
             />
-            <Route
-              path="/categories/:genre"
-              element={
-                <MainLayout>
-                  <Categories />
-                </MainLayout>
-              }
-            />
+
             <Route
               path="/genres"
               element={
@@ -208,10 +193,10 @@ export default function MainRoutes() {
               }
             />
             <Route
-              path="/genres/:genre"
+              path="/genres/:id"
               element={
                 <MainLayout>
-                  <Categories />
+                  <GenreDetail />
                 </MainLayout>
               }
             />
@@ -250,63 +235,35 @@ export default function MainRoutes() {
               }
             />
             {/* 🆕 Authors routes */}
+
             <Route
-              path="/authors"
+              path="/authors/:id"
               element={
                 <MainLayout>
-                  {/* TODO: Create AuthorsPage component */}
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Tác giả</h1>
-                    <p className="text-gray-600">
-                      Trang này đang được phát triển
-                    </p>
-                  </div>
+                  <AuthorDetail />
                 </MainLayout>
               }
             />
+
             <Route
-              path="/author/:id"
+              path="/authors/"
               element={
                 <MainLayout>
-                  {/* TODO: Create AuthorDetailPage component */}
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Chi tiết tác giả</h1>
-                    <p className="text-gray-600">
-                      Trang này đang được phát triển
-                    </p>
-                  </div>
+                  <AuthorList />
                 </MainLayout>
               }
             />
+
             {/* 🆕 Additional utility routes */}
             <Route
-              path="/popular"
+              path="/popular-books"
               element={
                 <MainLayout>
-                  {/* TODO: Create PopularBooksPage component */}
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Sách phổ biến</h1>
-                    <p className="text-gray-600">
-                      Trang này đang được phát triển
-                    </p>
-                  </div>
+                  <BookPopular />
                 </MainLayout>
               }
             />
-            <Route
-              path="/new-releases"
-              element={
-                <MainLayout>
-                  {/* TODO: Create NewReleasesPage component */}
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Sách mới</h1>
-                    <p className="text-gray-600">
-                      Trang này đang được phát triển
-                    </p>
-                  </div>
-                </MainLayout>
-              }
-            />
+
             {/* 🆕 404 Not Found */}
             <Route
               path="*"
@@ -366,4 +323,4 @@ export default function MainRoutes() {
       </ErrorBoundary>
     </QueryClientProvider>
   );
-
+}

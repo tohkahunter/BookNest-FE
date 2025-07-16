@@ -12,7 +12,7 @@ export default function MainLayout({
   sidebarWidth = "w-64",
 }) {
   return (
-    <div className="min-h-screen bg-base-200 flex flex-col">
+    <div className="min-h-screen bg-orange-50 flex flex-col">
       {/* Header - Fixed at top */}
       <Header />
 
@@ -25,7 +25,7 @@ export default function MainLayout({
           <>
             {/* Desktop Sidebar */}
             <div
-              className={`hidden lg:block ${sidebarWidth} bg-base-100 shadow-lg border-r border-base-300 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto`}
+              className={`hidden lg:block ${sidebarWidth} bg-orange-50 shadow-lg border-r border-base-300 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto`}
             >
               <Sidebar />
             </div>
