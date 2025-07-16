@@ -109,11 +109,9 @@ export default function Admin() {
       const updatedGenres = await getAllGenres();
       setAuthors(updatedAuthors);
       setGenres(updatedGenres);
-      toast.success("Book added successfully!");
     } catch (err) {
       console.error("Failed to add book:", err);
       toast.error("Failed to add book.");
-
     }
   };
 

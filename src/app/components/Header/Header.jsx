@@ -6,7 +6,6 @@ import { SimpleBookSearch } from "../book/BookSearch";
 const Header = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
-
   const [showBrowseDropdown, setShowBrowseDropdown] = useState(false);
   const [showCommunityDropdown, setShowCommunityDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -16,7 +15,7 @@ const Header = () => {
   const browseDropdownRef = useRef(null);
   const communityDropdownRef = useRef(null);
   const userDropdownRef = useRef(null);
-
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const handleSearch = (searchTerm) => {
     if (searchTerm.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
@@ -455,7 +454,7 @@ const Header = () => {
                         </svg>
                         My Library
                       </Link>
-                      {user?.role === "Admin" && (
+                      {currentUser?.roleId === 3 && (
                         <Link
                           to="/admin"
                           className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
@@ -477,6 +476,7 @@ const Header = () => {
                           Admin Dashboard
                         </Link>
                       )}
+
                       <Link
                         to="/settings"
                         className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
@@ -805,7 +805,7 @@ const Header = () => {
                     </svg>
                     My Profile
                   </Link>
-                  {user?.role === "Admin" && (
+                  {currentUser?.roleId === 3 && (
                     <Link
                       to="/admin"
                       className="flex items-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 py-2 px-3 rounded-lg transition-colors duration-200 text-sm"
