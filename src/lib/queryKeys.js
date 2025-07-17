@@ -31,11 +31,24 @@ export const QUERY_KEYS = {
   READING_STATUS: ["reading-status"],
   BOOK_IN_LIBRARY: (bookId) => ["book-in-library", bookId],
 
+  // Reviews
+
+  // Reviews
+  REVIEWS: ["reviews"],
+  BOOK_REVIEWS: (bookId) => ["reviews", "book", bookId],
+  REVIEW: (reviewId) => ["review", reviewId],
+  MY_REVIEW: (bookId) => ["my-review", bookId],
+  USER_REVIEWS: (userId) => ["reviews", "user", userId],
+  MY_REVIEWS: ["my-reviews"],
+  RECENT_REVIEWS: (count) => ["reviews", "recent", count],
+  CAN_REVIEW: (bookId) => ["can-review", bookId],
+
+  // Comments
+  COMMENTS: ["comments"],
+  REVIEW_COMMENTS: (reviewId) => ["comments", "review", reviewId],
+  COMMENT: (commentId) => ["comment", commentId],
+
   // Auth & User data
   USER_PROFILE: ["user-profile"],
   USER_STATS: ["user-stats"],
-
-  // Additional user-related queries
-  USER_REVIEWS: ["user-reviews"],
-  USER_ACTIVITY: ["user-activity"],
 };

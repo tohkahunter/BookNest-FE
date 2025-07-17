@@ -7,6 +7,7 @@ import { getAuthorById } from "../../../services/authorService";
 import { genreService } from "../../../services/genreService";
 import { QUERY_KEYS } from "../../../lib/queryKeys";
 import "./styles/BookDetail.css";
+import ReviewSection from "../../components/review/ReviewSection";
 
 function BookDetail() {
   const { id } = useParams();
@@ -152,7 +153,7 @@ function BookDetail() {
               </div>
 
               {/* Reading Actions */}
-              <div className="bg-white rounded-lg p-2 space-y-4 text-center flex flex-col items-center">
+              <div className=" rounded-lg p-2 space-y-4 text-center flex flex-col items-center">
                 {/* Status Dropdown */}
                 <div className="relative w-[200px]">
                   <select
@@ -180,33 +181,6 @@ function BookDetail() {
                     />
                   </svg>
                 </div>
-
-                {/* Interactive Rating */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center space-x-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => handleRatingClick(star)}
-                        className={`text-2xl transition-all duration-200 hover:scale-110 transform ${
-                          star <= userRating
-                            ? "text-orange-400"
-                            : "text-gray-300 hover:text-orange-300"
-                        }`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Rate this book
-                  </label>
-                  {userRating > 0 && (
-                    <p className="text-sm text-gray-600">
-                      Your rating: {userRating}/5
-                    </p>
-                  )}
-                </div>
               </div>
             </div>
           </div>
@@ -219,7 +193,7 @@ function BookDetail() {
               <p className="text-gray-600 mb-4">
                 by{" "}
                 <Link
-                  to={`/author/${book.AuthorId}`}
+                  to={`/authors/${book.AuthorId}`}
                   className="text-orange-600 text-2xl hover:text-orange-700 hover:underline font-medium"
                 >
                   {book.AuthorName ||
@@ -385,7 +359,7 @@ function BookDetail() {
                 {/* Author Action Buttons */}
                 <div className="flex items-center space-x-4 mt-6 pt-4 border-t border-gray-200">
                   <Link
-                    to={`/author/${author.AuthorId}`}
+                    to={`/authors/${author.AuthorId}`}
                     className="text-orange-600 hover:text-orange-700 font-medium hover:underline"
                   >
                     View all books by {author.Name}
@@ -394,36 +368,8 @@ function BookDetail() {
               </div>
             )}
 
-            {/* Community Reviews */}
-            <div className="bg-white rounded-lg p-2">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Community Reviews
-                </h3>
-                <button className="text-orange-600 hover:text-orange-700 font-medium hover:underline">
-                  Write a Review
-                </button>
-              </div>
-
-              {displayReviewCount > 0 ? (
-                <div className="space-y-6">
-                  {/* Sample review placeholder */}
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No reviews available yet.</p>
-                    <button className="mt-2 text-orange-600 hover:text-orange-700 font-medium hover:underline">
-                      Be the first to review this book
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No reviews available yet.</p>
-                  <button className="mt-2 text-orange-600 hover:text-orange-700 font-medium hover:underline">
-                    Be the first to review this book
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Review Section */}
+            <ReviewSection bookId={parseInt(id)} />
           </div>
         </div>
       </div>

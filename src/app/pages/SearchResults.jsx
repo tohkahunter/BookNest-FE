@@ -232,7 +232,7 @@ const SearchResults = () => {
                 {filteredBooks.map((book) => (
                   <Link
                     key={book.BookId || book.id}
-                    to={`/book/${book.BookId || book.id}`}
+                    to={`/books/${book.BookId || book.id}`}
                     className="block p-8 hover:bg-orange-25 transition-colors group"
                   >
                     <div className="flex items-start space-x-6">
