@@ -48,28 +48,6 @@ export default function AddModal({
     }));
   };
 
-  const handleAuthorSelect = (e) => {
-    const value = e.target.value;
-    if (value === "add_new") {
-      setShowNewAuthor(true);
-      setFormData((prev) => ({ ...prev, authorId: "" }));
-    } else {
-      setShowNewAuthor(false);
-      setFormData((prev) => ({ ...prev, authorId: value }));
-    }
-  };
-
-  const handleGenreSelect = (e) => {
-    const value = e.target.value;
-    if (value === "add_new") {
-      setShowNewGenre(true);
-      setFormData((prev) => ({ ...prev, genreId: "" }));
-    } else {
-      setShowNewGenre(false);
-      setFormData((prev) => ({ ...prev, genreId: value }));
-    }
-  };
-
   const resetNewAuthor = () => {
     setShowNewAuthor(false);
     setNewAuthor({ Name: "" });
@@ -87,34 +65,63 @@ export default function AddModal({
       let authorId = formData.authorId;
       let genreId = formData.genreId;
 
+      // === Add Author if needed ===
       if (showNewAuthor) {
-        const res = await addAuthor(newAuthor);
-        if (!res?.Author?.AuthorId) {
-          console.error("Invalid author response:", res);
-          throw new Error("Invalid author response");
+        try {
+          const res = await addAuthor(newAuthor);
+          if (!res?.Author?.AuthorId) {
+            throw new Error("Invalid author response");
+          }
+          authorId = res.Author.AuthorId;
+        } catch (err) {
+          if (err.message?.includes("already exists")) {
+            toast.error("Author already exists!");
+          } else if (
+            err.message?.includes("401") ||
+            err.message?.includes("403")
+          ) {
+            toast.error("Session expired. Please login again.");
+          } else {
+            toast.error("Failed to add author.");
+          }
+          return; // Stop submission
         }
-        authorId = res.Author.AuthorId;
       }
 
+      // === Add Genre if needed ===
       if (showNewGenre) {
-        const res = await addGenre(newGenre);
-        if (!res?.Genre?.GenreId) {
-          console.error("Invalid genre response:", res);
-          throw new Error("Invalid genre response");
+        try {
+          const res = await addGenre(newGenre);
+          if (!res?.Genre?.GenreId) {
+            throw new Error("Invalid genre response");
+          }
+          genreId = res.Genre.GenreId;
+        } catch (err) {
+          if (err.message?.includes("already exists")) {
+            toast.error("Genre already exists!");
+          } else if (
+            err.message?.includes("401") ||
+            err.message?.includes("403")
+          ) {
+            toast.error("Session expired. Please login again.");
+          } else {
+            toast.error("Failed to add genre.");
+          }
+          return;
         }
-        genreId = res.Genre.GenreId;
       }
 
-      // Validate IDs
-      if (!authorId || isNaN(authorId)) {
-        toast.error("Invalid or missing author ID");
+      // Validate author and genre selection
+      if (!showNewAuthor && (!formData.authorId || isNaN(formData.authorId))) {
+        toast.error("Please select an author or add a new one");
         return;
       }
-      if (!genreId || isNaN(genreId)) {
-        toast.error("Invalid or missing genre ID");
+      if (!showNewGenre && (!formData.genreId || isNaN(formData.genreId))) {
+        toast.error("Please select a genre or add a new one");
         return;
       }
 
+      // Create book payload
       const newBook = {
         Title: formData.title.trim(),
         Isbn13: formData.isbn13.trim(),
@@ -127,8 +134,8 @@ export default function AddModal({
         PageCount: Number(formData.pageCount) || 0,
       };
 
-      // Attempt to add book through onSubmit
-      const result = await onSubmit(newBook); // <- should return { success: true } or { error: "DUPLICATE_ISBN" }
+      // Add book via parent
+      const result = await onSubmit(newBook);
 
       if (result?.error === "DUPLICATE_ISBN") {
         toast.error("ISBN-13 already exists!");
@@ -137,7 +144,7 @@ export default function AddModal({
 
       toast.success("Book added successfully!");
 
-      // Reset form after success
+      // Reset form
       setFormData({
         title: "",
         isbn13: "",
@@ -148,16 +155,18 @@ export default function AddModal({
         coverImageUrl: "",
         pageCount: "",
       });
-
       resetNewAuthor();
       resetNewGenre();
       onClose();
     } catch (err) {
-      console.error(err);
-
-      // Handle known duplicate case if caught from backend
-      if (err?.response?.data?.error === "DUPLICATE_ISBN") {
-        toast.error("ISBN-13 already exists!");
+      console.error("Unhandled error:", err);
+      if (err.message?.includes("401") || err.message?.includes("403")) {
+        toast.error("Session expired. Please login again.");
+      } else if (
+        err.message?.includes("duplicate") ||
+        err.message?.includes("exists")
+      ) {
+        toast.error("This book might already exist.");
       } else {
         toast.error("Failed to add book.");
       }
@@ -216,12 +225,12 @@ export default function AddModal({
               <label className="label">
                 <span className="label-text font-medium">Author *</span>
               </label>
-              {!showNewAuthor ? (
+              <div className="flex gap-2">
                 <select
                   name="authorId"
                   value={formData.authorId}
-                  onChange={handleAuthorSelect}
-                  className="select select-bordered w-full"
+                  onChange={handleInputChange}
+                  className="select select-bordered flex-1"
                   required
                 >
                   <option value="">Select an author</option>
@@ -230,44 +239,40 @@ export default function AddModal({
                       {author.Name}
                     </option>
                   ))}
-                  <option value="add_new" className="text-success font-medium">
-                    + Add New Author
-                  </option>
                 </select>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      name="Name"
-                      value={newAuthor.Name}
-                      onChange={handleNewAuthorChange}
-                      placeholder="Author name"
-                      className="input input-bordered flex-1"
-                      required
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setShowNewAuthor(true)}
+                  title="Add New Author"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
                     />
-
-                    <button
-                      type="button"
-                      className="btn btn-outline btn-sm"
-                      onClick={resetNewAuthor}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Genre *</span>
               </label>
-              {!showNewGenre ? (
+              <div className="flex gap-2">
                 <select
                   name="genreId"
                   value={formData.genreId}
-                  onChange={handleGenreSelect}
-                  className="select select-bordered w-full"
+                  onChange={handleInputChange}
+                  className="select select-bordered flex-1"
                   required
                 >
                   <option value="">Select a genre</option>
@@ -276,41 +281,94 @@ export default function AddModal({
                       {genre.GenreName}
                     </option>
                   ))}
-                  <option value="add_new" className="text-success font-medium">
-                    + Add New Genre
-                  </option>
                 </select>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      name="GenreName"
-                      value={newGenre.GenreName}
-                      onChange={handleNewGenreChange}
-                      placeholder="Genre name"
-                      className="input input-bordered flex-1"
-                      required
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setShowNewGenre(true)}
+                  title="Add New Genre"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
                     />
-                    <button
-                      type="button"
-                      className="btn btn-outline btn-sm"
-                      onClick={resetNewGenre}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <textarea
-                    name="Description"
-                    value={newGenre.Description}
-                    onChange={handleNewGenreChange}
-                    placeholder="Genre description (optional)"
-                    className="textarea textarea-bordered w-full textarea-sm h-16 resize-none"
-                  />
-                </div>
-              )}
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Add New Author Modal */}
+          {showNewAuthor && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-blue-900">Add New Author</h4>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-circle btn-ghost text-blue-600"
+                  onClick={resetNewAuthor}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="form-control">
+                <input
+                  type="text"
+                  name="Name"
+                  value={newAuthor.Name}
+                  onChange={handleNewAuthorChange}
+                  placeholder="Enter author name"
+                  className="input input-bordered w-full"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Add New Genre Modal */}
+          {showNewGenre && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-green-900">Add New Genre</h4>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-circle btn-ghost text-green-600"
+                  onClick={resetNewGenre}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="form-control">
+                <input
+                  type="text"
+                  name="GenreName"
+                  value={newGenre.GenreName}
+                  onChange={handleNewGenreChange}
+                  placeholder="Enter genre name"
+                  className="input input-bordered w-full"
+                  required
+                />
+              </div>
+              <div className="form-control">
+                <textarea
+                  name="Description"
+                  value={newGenre.Description}
+                  onChange={handleNewGenreChange}
+                  placeholder="Genre description (optional)"
+                  className="textarea textarea-bordered w-full textarea-sm h-16 resize-none"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Row 3: Publication Year, Page Count, Language */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
