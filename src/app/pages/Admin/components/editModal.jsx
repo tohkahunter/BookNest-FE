@@ -65,28 +65,65 @@ export default function EditModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box w-11/12 max-w-2xl">
+    <div className="modal modal-open backdrop-blur-md">
+      <div className="modal-box w-11/12 max-w-2xl bg-gradient-to-br from-white to-orange-50 border border-orange-200 shadow-2xl">
         {/* Modal Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-orange-200">
           <div>
-            <h3 className="font-bold text-xl text-neutral">Edit Book</h3>
-            <p className="text-sm text-neutral/60 mt-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-gradient-to-r from-orange-500 to-red-600 p-3 rounded-xl">
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+              </div>
+              <h3 className="font-bold text-2xl bg-gradient-to-r from-gray-800 to-orange-600 bg-clip-text text-transparent">
+                Edit Book
+              </h3>
+            </div>
+            <p className="text-sm text-gray-600 font-medium flex items-center gap-2">
+              <svg
+                className="w-4 h-4 text-orange-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
+              </svg>
               Book ID: {formData.bookId}
             </p>
           </div>
-          <button className="btn btn-sm btn-circle btn-ghost" onClick={onClose}>
+          <button
+            className="btn btn-sm btn-circle btn-ghost hover:bg-red-100 hover:text-red-600 transition-colors duration-200"
+            onClick={onClose}
+          >
             ✕
           </button>
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Row 1: Title and ISBN */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Book Title *</span>
+                <span className="label-text font-semibold text-gray-700">
+                  Book Title *
+                </span>
               </label>
               <input
                 type="text"
@@ -94,13 +131,15 @@ export default function EditModal({
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="Enter book title"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 required
               />
             </div>
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">ISBN-13</span>
+                <span className="label-text font-semibold text-gray-700">
+                  ISBN-13
+                </span>
               </label>
               <input
                 type="text"
@@ -108,22 +147,24 @@ export default function EditModal({
                 value={formData.isbn13}
                 onChange={handleInputChange}
                 placeholder="978-0000000000"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
               />
             </div>
           </div>
 
           {/* Row 2: Author and Genre */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Author *</span>
+                <span className="label-text font-semibold text-gray-700">
+                  Author *
+                </span>
               </label>
               <select
                 name="authorId"
                 value={formData.authorId}
                 onChange={handleInputChange}
-                className="select select-bordered w-full"
+                className="select select-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 required
               >
                 <option value="">Select an author</option>
@@ -136,13 +177,15 @@ export default function EditModal({
             </div>
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Genre *</span>
+                <span className="label-text font-semibold text-gray-700">
+                  Genre *
+                </span>
               </label>
               <select
                 name="genreId"
                 value={formData.genreId}
                 onChange={handleInputChange}
-                className="select select-bordered w-full"
+                className="select select-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 required
               >
                 <option value="">Select a genre</option>
@@ -156,10 +199,12 @@ export default function EditModal({
           </div>
 
           {/* Row 3: Publication Year, Page Count, Language */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Publication Year</span>
+                <span className="label-text font-semibold text-gray-700">
+                  Publication Year
+                </span>
               </label>
               <input
                 type="number"
@@ -169,12 +214,14 @@ export default function EditModal({
                 placeholder="2024"
                 min="1000"
                 max={new Date().getFullYear()}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
               />
             </div>
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Page Count</span>
+                <span className="label-text font-semibold text-gray-700">
+                  Page Count
+                </span>
               </label>
               <input
                 type="number"
@@ -183,7 +230,7 @@ export default function EditModal({
                 onChange={handleInputChange}
                 placeholder="300"
                 min="1"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
               />
             </div>
           </div>
@@ -191,7 +238,9 @@ export default function EditModal({
           {/* Row 4: Cover Image URL with Preview */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">Cover Image URL</span>
+              <span className="label-text font-semibold text-gray-700">
+                Cover Image URL
+              </span>
             </label>
             <div className="flex gap-4">
               <div className="flex-1">
@@ -201,7 +250,7 @@ export default function EditModal({
                   value={formData.coverImageUrl}
                   onChange={handleInputChange}
                   placeholder="https://example.com/book-cover.jpg"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 />
               </div>
             </div>
@@ -210,23 +259,38 @@ export default function EditModal({
           {/* Row 5: Description */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">Description</span>
+              <span className="label-text font-semibold text-gray-700">
+                Description
+              </span>
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
               placeholder="Enter book description..."
-              className="textarea textarea-bordered h-24 resize-none"
+              className="textarea textarea-bordered h-32 resize-none bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
             ></textarea>
           </div>
 
           {/* Changes Summary */}
-          <div className="bg-base-200 p-4 rounded-lg">
-            <h4 className="font-medium text-sm text-neutral/80 mb-2">
+          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 p-6 rounded-2xl shadow-lg">
+            <h4 className="font-bold text-sm text-orange-800 mb-2 flex items-center gap-2">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                />
+              </svg>
               📝 Editing: {bookData?.Title || "Unknown Book"}
             </h4>
-            <div className="text-xs text-neutral/60">
+            <div className="text-xs text-orange-700">
               Last modified:{" "}
               {bookData?.UpdatedAt
                 ? new Date(bookData.UpdatedAt).toLocaleString()
@@ -235,17 +299,35 @@ export default function EditModal({
           </div>
 
           {/* Modal Actions */}
-          <div className="modal-action justify-between">
-            <div className="text-sm text-neutral/60">* Required fields</div>
-            <div className="space-x-2">
+          <div className="modal-action justify-between pt-6 border-t border-orange-200">
+            <div className="text-sm text-gray-600 font-medium flex items-center gap-1">
+              <svg
+                className="w-4 h-4 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+              * Required fields
+            </div>
+            <div className="space-x-3">
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-outline border-2 border-gray-300 hover:bg-gray-100 rounded-xl px-6 py-3 font-semibold transition-all duration-200"
                 onClick={onClose}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-warning text-white">
+              <button
+                type="submit"
+                className="btn bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0 rounded-xl px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              >
                 Update Book
               </button>
             </div>
