@@ -1,20 +1,28 @@
-// src/app/pages/BookDetail/BookDetail.jsx - Updated with Real API
+// src/app/pages/BookDetail/BookDetail.jsx - Fixed Cache Update Issues
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBookById } from "../../../services/bookService";
 import { getAuthorById } from "../../../services/authorService";
 import { genreService } from "../../../services/genreService";
 import { QUERY_KEYS } from "../../../lib/queryKeys";
 import "./styles/BookDetail.css";
 import ReviewSection from "../../components/review/ReviewSection";
+import {
+  useBookInLibrary,
+  useAddBookToLibrary,
+  useUpdateBookStatus,
+  useReadingStatuses,
+  useMyShelves,
+} from "../../hooks/index";
+import { toast } from "react-hot-toast";
 
 function BookDetail() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
 
   // State for interactive features
   const [userRating, setUserRating] = useState(0);
-  const [readingStatus, setReadingStatus] = useState("want-to-read");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
 
@@ -43,16 +51,57 @@ function BookDetail() {
     enabled: !!book?.GenreId,
   });
 
-  const statusOptions = {
-    "want-to-read": {
-      label: "Want to Read",
-      color: "bg-green-600 hover:bg-green-700",
-    },
-    "currently-reading": {
-      label: "Currently Reading",
-      color: "bg-blue-600 hover:bg-blue-700",
-    },
-    read: { label: "Read", color: "bg-gray-600 hover:bg-gray-700" },
+  // ✅ Library integration hooks
+  const { data: bookInLibrary, isLoading: isCheckingLibrary } =
+    useBookInLibrary(id);
+  const { data: readingStatuses } = useReadingStatuses();
+  const { data: shelves } = useMyShelves();
+  const addBookMutation = useAddBookToLibrary();
+  const updateStatusMutation = useUpdateBookStatus();
+
+  // ✅ Simple add to library handler with page reload
+  const handleAddToLibrary = async ({ statusId, shelfId }) => {
+    try {
+      // Make API call
+      await addBookMutation.mutateAsync({
+        bookId: parseInt(id),
+        statusId: statusId,
+        shelfId: shelfId,
+      });
+
+      // Show success message
+      toast.success("Sách đã được thêm vào thư viện!");
+
+      // Wait a bit for toast to show, then reload page
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error("Add book error:", error);
+      toast.error("Có lỗi khi thêm sách vào thư viện");
+    }
+  };
+
+  // ✅ Simple update status handler with page reload
+  const handleUpdateStatus = async (newStatusId) => {
+    try {
+      // Make API call
+      await updateStatusMutation.mutateAsync({
+        bookId: parseInt(id),
+        newStatusId: newStatusId,
+      });
+
+      // Show success message
+      toast.success("Đã cập nhật trạng thái sách!");
+
+      // Wait a bit for toast to show, then reload page
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error("Update status error:", error);
+      toast.error("Có lỗi khi cập nhật trạng thái");
+    }
   };
 
   const handleRatingClick = (rating) => {
@@ -65,9 +114,34 @@ function BookDetail() {
     // TODO: Implement API call to follow/unfollow author
   };
 
-  const handleStatusChange = (newStatus) => {
-    setReadingStatus(newStatus);
-    // TODO: Implement API call to save reading status
+  // Get status configuration for styling
+  const getStatusConfig = (statusId) => {
+    switch (statusId) {
+      case 1:
+        return {
+          color: "bg-yellow-500 hover:bg-yellow-600",
+          icon: "📝",
+          label: "Muốn đọc",
+        };
+      case 2:
+        return {
+          color: "bg-blue-500 hover:bg-blue-600",
+          icon: "📖",
+          label: "Đang đọc",
+        };
+      case 3:
+        return {
+          color: "bg-green-500 hover:bg-green-600",
+          icon: "✅",
+          label: "Đã đọc",
+        };
+      default:
+        return {
+          color: "bg-gray-500 hover:bg-gray-600",
+          icon: "❓",
+          label: "Không xác định",
+        };
+    }
   };
 
   // Loading state
@@ -152,35 +226,119 @@ function BookDetail() {
                 </div>
               </div>
 
-              {/* Reading Actions */}
-              <div className=" rounded-lg p-2 space-y-4 text-center flex flex-col items-center">
-                {/* Status Dropdown */}
-                <div className="relative w-[200px]">
-                  <select
-                    value={readingStatus}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    className={`text-center w-full text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 ${statusOptions[readingStatus].color} appearance-none cursor-pointer`}
-                  >
-                    {Object.entries(statusOptions).map(([key, option]) => (
-                      <option key={key} value={key} className="text-gray-900">
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <svg
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white pointer-events-none"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
+              {/* ✅ Reading Actions - Enhanced with better loading states */}
+              <div className="rounded-lg p-4 space-y-4 text-center">
+                {isCheckingLibrary ? (
+                  // Loading state
+                  <div className="space-y-2">
+                    <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+                    <div className="w-full h-8 bg-gray-100 rounded animate-pulse"></div>
+                  </div>
+                ) : !bookInLibrary?.Exists ? (
+                  // ✅ Book NOT in library - Show Add form
+                  <AddToLibraryForm
+                    onAdd={handleAddToLibrary}
+                    isAdding={addBookMutation.isPending}
+                    readingStatuses={readingStatuses}
+                    shelves={shelves}
+                  />
+                ) : (
+                  // ✅ Book IN library - Show current status and update options
+                  <div className="space-y-4">
+                    {/* Current Status Display */}
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center justify-center gap-2 text-green-800">
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span className="font-medium">
+                          Đã có trong thư viện
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Current Status */}
+                    {bookInLibrary.UserBook && (
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600 mb-2">
+                          Trạng thái hiện tại:
+                        </p>
+                        <div
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+                            getStatusConfig(bookInLibrary.UserBook.StatusId)
+                              .color
+                          } text-white font-medium`}
+                        >
+                          <span>
+                            {
+                              getStatusConfig(bookInLibrary.UserBook.StatusId)
+                                .icon
+                            }
+                          </span>
+                          <span>
+                            {
+                              getStatusConfig(bookInLibrary.UserBook.StatusId)
+                                .label
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Update Status Dropdown */}
+                    {/* <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        Thay đổi trạng thái:
+                      </label>
+                      <select
+                        onChange={(e) =>
+                          handleUpdateStatus(parseInt(e.target.value))
+                        }
+                        disabled={updateStatusMutation.isPending}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          {updateStatusMutation.isPending
+                            ? "Đang cập nhật..."
+                            : "Chọn trạng thái mới"}
+                        </option>
+                        {readingStatuses
+                          ?.filter(
+                            (status) =>
+                              status.StatusId !==
+                              bookInLibrary.UserBook?.StatusId
+                          )
+                          .map((status) => (
+                            <option
+                              key={status.StatusId}
+                              value={status.StatusId}
+                            >
+                              {getStatusConfig(status.StatusId).label}
+                            </option>
+                          ))}
+                      </select>
+                    </div> */}
+
+                    {/* Quick Actions */}
+                    <div className="pt-2 border-t border-gray-200">
+                      <Link
+                        to="/bookshelf"
+                        className="text-orange-600 hover:text-orange-700 font-medium text-sm hover:underline"
+                      >
+                        📚 Xem trong thư viện
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -188,7 +346,7 @@ function BookDetail() {
           {/* Right Column - Book Information */}
           <div className="lg:col-span-2 space-y-6">
             {/* Book Info */}
-            <div className="bg-white rounded-lg p-2">
+            <div className="bg-white rounded-lg p-6">
               <h1 className="text-5xl text-gray-900 mb-2">{book.Title}</h1>
               <p className="text-gray-600 mb-4">
                 by{" "}
@@ -229,7 +387,7 @@ function BookDetail() {
 
             {/* Description */}
             {book.Description && (
-              <div className="bg-white rounded-lg p-2">
+              <div className="bg-white rounded-lg p-6">
                 <h3 className="text-xl font-semibold mb-4 text-gray-900">
                   Description
                 </h3>
@@ -251,7 +409,7 @@ function BookDetail() {
 
             {/* Genre */}
             {genre && (
-              <div className="bg-white rounded-lg p-2">
+              <div className="bg-white rounded-lg p-6">
                 <h3 className="text-xl font-semibold mb-4 text-gray-900">
                   Genre
                 </h3>
@@ -272,7 +430,7 @@ function BookDetail() {
             )}
 
             {/* Book Details */}
-            <div className="bg-white rounded-lg p-2">
+            <div className="bg-white rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">
                 Book Details
               </h3>
@@ -312,7 +470,7 @@ function BookDetail() {
 
             {/* About the Author */}
             {!isAuthorLoading && author && (
-              <div className="bg-white rounded-lg p-2">
+              <div className="bg-white rounded-lg p-6">
                 <h3 className="text-xl font-semibold mb-6 text-gray-900">
                   About the author
                 </h3>
@@ -376,5 +534,131 @@ function BookDetail() {
     </div>
   );
 }
+
+// ✅ Enhanced Add to Library Form Component
+const AddToLibraryForm = ({ onAdd, isAdding, readingStatuses, shelves }) => {
+  const [selectedStatus, setSelectedStatus] = useState(1); // Default: Want to Read
+  const [selectedShelf, setSelectedShelf] = useState("");
+
+  const getStatusConfig = (statusId) => {
+    switch (statusId) {
+      case 1:
+        return { color: "bg-yellow-500", icon: "📝", label: "Muốn đọc" };
+      case 2:
+        return { color: "bg-blue-500", icon: "📖", label: "Đang đọc" };
+      case 3:
+        return { color: "bg-green-500", icon: "✅", label: "Đã đọc" };
+      default:
+        return { color: "bg-gray-500", icon: "❓", label: "Không xác định" };
+    }
+  };
+
+  const currentConfig = getStatusConfig(selectedStatus);
+
+  const handleSubmit = () => {
+    onAdd({
+      statusId: selectedStatus,
+      shelfId: selectedShelf || null,
+    });
+  };
+
+  return (
+    <div className="space-y-4 bg-orange-50 border border-orange-200 rounded-lg p-4">
+      <h4 className="text-lg font-semibold text-gray-800 text-center mb-4">
+        📚 Thêm vào thư viện
+      </h4>
+
+      {/* Status Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">
+          Trạng thái đọc
+        </label>
+        <select
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(parseInt(e.target.value))}
+          className="text-gray-700 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          disabled={isAdding}
+        >
+          {readingStatuses?.map((status) => {
+            const config = getStatusConfig(status.StatusId);
+            return (
+              <option
+                key={status.StatusId}
+                value={status.StatusId}
+                className="text-gray-800"
+              >
+                {config.icon} {config.label}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+
+      {/* Shelf Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">
+          Kệ sách (tùy chọn)
+        </label>
+        <select
+          value={selectedShelf}
+          onChange={(e) => setSelectedShelf(e.target.value)}
+          className="text-gray-700 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          disabled={isAdding}
+        >
+          <option value="">🏠 Không chọn kệ</option>
+          {shelves?.map((shelf) => (
+            <option
+              key={shelf.ShelfId}
+              value={shelf.ShelfId}
+              className="text-gray-800"
+            >
+              📚 {shelf.ShelfName}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Preview Selection */}
+      <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <p className="text-sm text-gray-600 mb-2">Tóm tắt lựa chọn:</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-white text-sm font-medium ${currentConfig.color}`}
+          >
+            {currentConfig.icon} {currentConfig.label}
+          </span>
+          {selectedShelf && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm">
+              📚{" "}
+              {
+                shelves?.find((s) => s.ShelfId === parseInt(selectedShelf))
+                  ?.ShelfName
+              }
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Add Button */}
+      <button
+        onClick={handleSubmit}
+        disabled={isAdding}
+        className={`w-full ${currentConfig.color} hover:opacity-90 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+      >
+        {isAdding ? (
+          <>
+            <span className="loading loading-spinner loading-sm"></span>
+            Đang thêm vào thư viện...
+          </>
+        ) : (
+          <>
+            <span className="text-lg">{currentConfig.icon}</span>
+            Thêm vào thư viện
+          </>
+        )}
+      </button>
+    </div>
+  );
+};
 
 export default BookDetail;

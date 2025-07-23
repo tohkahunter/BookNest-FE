@@ -193,10 +193,10 @@ function GenreList() {
               <h3 className="text-xl font-bold text-white mb-2">
                 {genre.GenreName}
               </h3>
-              <div className="bg-white bg-opacity-20 rounded-full px-3 py-1 text-gray-700 text-sm font-medium">
+              {/* <div className="bg-white bg-opacity-20 rounded-full px-3 py-1 text-gray-700 text-sm font-medium">
                 {genre.BookCount || 0} book
                 {(genre.BookCount || 0) !== 1 ? "s" : ""}
-              </div>
+              </div> */}
             </div>
 
             {/* Genre Content */}
@@ -257,7 +257,7 @@ function GenreList() {
           </p>
           <div className="flex items-center justify-center space-x-4">
             <Link
-              to="/"
+              to="/books"
               className="bg-white text-orange-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
             >
               Browse All Books

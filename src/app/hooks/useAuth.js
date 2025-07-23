@@ -10,6 +10,7 @@ import {
   getCurrentUser,
   getToken,
 } from "../../services/authService";
+import axiosInstance from "../../config/axios"; // ✅ ADD: Import axiosInstance
 
 // ==================== QUERY HOOKS ====================
 
@@ -183,17 +184,59 @@ export const useAuth = () => {
   const logoutMutation = useLogout();
   const updateUserMutation = useUpdateUserProfile();
 
-  // Initialize auth state từ localStorage
-  const initializeAuth = useCallback(() => {
+  // ✅ UPDATED: Initialize auth state với profile data fetching
+  const initializeAuth = useCallback(async () => {
     try {
       setLoading(true);
       const token = getToken();
       const currentUser = getCurrentUser();
 
       if (token && currentUser) {
-        setUser(currentUser);
-        // Sync với React Query cache
-        queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, currentUser);
+        console.log("🔄 Initializing auth with user:", currentUser);
+
+        // ✅ NEW: If user data is incomplete, fetch fresh profile data
+        const needsProfileData =
+          !currentUser.FirstName || !currentUser.LastName;
+
+        if (needsProfileData && currentUser.id) {
+          try {
+            console.log(
+              "📡 Fetching fresh profile data for user:",
+              currentUser.id
+            );
+
+            const profileResponse = await axiosInstance.get(
+              `/api/User/${currentUser.id}`
+            );
+            const profileData = profileResponse.data;
+
+            const completeUser = {
+              ...currentUser,
+              FirstName: profileData.FirstName || "",
+              LastName: profileData.LastName || "",
+              ProfilePictureUrl: profileData.ProfilePictureUrl || null,
+              RegistrationDate: profileData.RegistrationDate,
+              LastLoginDate: profileData.LastLoginDate,
+              IsActive: profileData.IsActive,
+            };
+
+            console.log("✅ Updated user with profile data:", completeUser);
+
+            // Update localStorage and state
+            localStorage.setItem("user", JSON.stringify(completeUser));
+            setUser(completeUser);
+            queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, completeUser);
+          } catch (profileError) {
+            console.error("Failed to fetch profile during init:", profileError);
+            // Use existing user data as fallback
+            setUser(currentUser);
+            queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, currentUser);
+          }
+        } else {
+          // User data is already complete
+          setUser(currentUser);
+          queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, currentUser);
+        }
       } else {
         setUser(null);
       }
@@ -206,16 +249,57 @@ export const useAuth = () => {
     }
   }, [queryClient]);
 
-  // Enhanced login function với better error handling
+  // ✅ UPDATED: Enhanced login function với complete user data
   const loginUser = useCallback(
     async (email, password) => {
       try {
         setError(null);
+
         const result = await loginMutation.mutateAsync({ email, password });
 
         if (result.user && result.token) {
-          setUser(result.user);
-          return { success: true, data: result };
+          console.log("📝 Basic user from login:", result.user);
+
+          // ✅ NEW: Fetch complete profile data
+          try {
+            const profileResponse = await axiosInstance.get(
+              `/api/User/${result.user.id}`
+            );
+            const profileData = profileResponse.data;
+
+            console.log("👤 Complete profile data:", profileData);
+
+            // Merge basic login data with complete profile data
+            const completeUser = {
+              id: result.user.id,
+              email: result.user.email,
+              username: result.user.username,
+              roleId: result.user.roleId,
+              FirstName: profileData.FirstName || "",
+              LastName: profileData.LastName || "",
+              ProfilePictureUrl: profileData.ProfilePictureUrl || null,
+              RegistrationDate: profileData.RegistrationDate,
+              LastLoginDate: profileData.LastLoginDate,
+              IsActive: profileData.IsActive,
+            };
+
+            console.log("🎯 Final complete user:", completeUser);
+
+            // Update localStorage with complete data
+            localStorage.setItem("user", JSON.stringify(completeUser));
+            setUser(completeUser);
+            queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, completeUser);
+
+            return { success: true, data: { ...result, user: completeUser } };
+          } catch (profileError) {
+            console.error("Failed to fetch profile data:", profileError);
+            setUser(result.user);
+            return {
+              success: true,
+              data: result,
+              warning: "Profile data incomplete",
+            };
+          }
         } else {
           throw new Error("Invalid response from server");
         }
@@ -226,7 +310,7 @@ export const useAuth = () => {
         return { success: false, error: errorMessage };
       }
     },
-    [loginMutation]
+    [loginMutation, queryClient]
   );
 
   // Enhanced register function

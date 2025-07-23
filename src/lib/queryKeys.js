@@ -48,7 +48,10 @@ export const QUERY_KEYS = {
   REVIEW_COMMENTS: (reviewId) => ["comments", "review", reviewId],
   COMMENT: (commentId) => ["comment", commentId],
 
-  // Auth & User data
-  USER_PROFILE: ["user-profile"],
-  USER_STATS: ["user-stats"],
+  USER_PROFILE: (userId) => ["user-profile", userId], // Support specific user ID
+  USER_STATS: (userId) => ["user-stats", userId], // Support specific user ID - FIXED to function
+
+  // ✅ Additional profile-related keys
+  MY_PROFILE: ["my-profile"], // Current user's profile
+  USER_AVATAR: (userId) => ["user-avatar", userId],
 };

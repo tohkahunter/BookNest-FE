@@ -27,6 +27,9 @@ import AuthorList from "../pages/Author/AuthorList";
 import BookPopular from "../components/book/BookPopular";
 import BookRecent from "../components/book/BookRecent";
 import AllBooks from "../components/book/AllBooks";
+import BookShelfPage from "../pages/BookShelf";
+import ShelfBooksPage from "../components/bookShelf/ShelfBooksPage";
+import EditProfilePage from "../pages/Profile/EditProfilePage";
 
 // 🆕 Error Fallback Component
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -213,27 +216,47 @@ export default function MainRoutes() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            {/* 🆕 User library routes */}
-            <Route
-              path="/my-books"
-              element={
-                <ProtectedRoute>
                   <MainLayout>
-                    {/* TODO: Create MyBooksPage component */}
-                    <div className="p-8 text-center">
-                      <h1 className="text-2xl font-bold">Thư viện của tôi</h1>
-                      <p className="text-gray-600">
-                        Trang này đang được phát triển
-                      </p>
-                    </div>
+                    <ProfilePage />
                   </MainLayout>
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <EditProfilePage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* BookShelf */}
+            <Route
+              path="/bookshelf"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <BookShelfPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/bookshelf/:shelfId"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ShelfBooksPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+
             {/* 🆕 Authors routes */}
 
             <Route

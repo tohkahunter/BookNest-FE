@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useBooks, useAuthors, useGenres, useAuth } from "../../hooks/index";
 import { useGenreStats } from "../../hooks/useGenres";
 
@@ -128,6 +128,7 @@ const Home = () => {
   // Combined states
   const isLoading = booksLoading || authorsLoading || genresLoading;
   const error = booksError || authorsError || genresError;
+  const navigate = useNavigate();
 
   // Error state
   if (error) {
@@ -369,7 +370,7 @@ const Home = () => {
               </div>
               <div className="flex space-x-4">
                 <Link
-                  to="/my-books"
+                  to="/bookshelf"
                   className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors font-medium shadow-md"
                 >
                   📚 My Library
@@ -531,10 +532,10 @@ const Home = () => {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            // Handle want to read action
+                            navigate(`/books/${book.BookId}`);
                           }}
                         >
-                          📖 Want to Read
+                          📖 View Details
                         </button>
                       </div>
                     </div>

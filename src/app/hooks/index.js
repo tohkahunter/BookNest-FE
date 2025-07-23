@@ -8,9 +8,9 @@ export {
   useRecentBooks,
   useSearchBooks,
   useBook,
-  useBooksByGenre, // ✅ Thiếu hook này
-  useBooksByAuthor, // ✅ Thiếu hook này
-  useBooksWithDetails, // ✅ Thiếu hook này
+  useBooksByGenre,
+  useBooksByAuthor,
+  useBooksWithDetails,
 } from "./useBooks";
 
 // Authors hooks
@@ -29,9 +29,9 @@ export { useGenres } from "./useGenres";
 // Bookshelf hooks
 export {
   useMyBooks,
-  useBooksByStatus, // ✅ Thiếu hook này
-  useBooksByShelf, // ✅ Thiếu hook này
-  useUserBook, // ✅ Thiếu hook này
+  useBooksByStatus,
+  useBooksByShelf,
+  useUserBook,
   useMyShelves,
   useReadingStatuses,
   useBookInLibrary,
@@ -40,13 +40,14 @@ export {
   useUpdateReadingProgress,
   useRemoveBookFromLibrary,
   useCreateShelf,
-  useUpdateShelf, // ✅ Thiếu hook này
+  useUpdateShelf,
   useDeleteShelf,
-  useMoveBookToShelf, // ✅ Thiếu hook này
-  useQuickAddBook, // ✅ Thiếu hook này
-  useStartReading, // ✅ Thiếu hook này
-  useFinishReading, // ✅ Thiếu hook này
+  useMoveBookToShelf,
+  useQuickAddBook,
+  useStartReading,
+  useFinishReading,
   useBookshelf,
+  useCheckBookInLibrary,
 } from "./useBookshelf";
 
 // Auth hooks
@@ -63,4 +64,4 @@ export {
 export { useHomePageData } from "./useHomeData";
 
 // User data hooks
-export { useUserData } from "./useUserData"; // ✅ Thiếu hook này nếu đã tạo
+export { useUserData } from "./useUserData";
