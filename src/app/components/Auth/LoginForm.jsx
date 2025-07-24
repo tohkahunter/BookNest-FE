@@ -1,21 +1,16 @@
-// LoginPage.jsx
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
 import { login } from "../../../services/authService";
-
-export default function LoginPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
+import {useNavigate} from "react-router-dom";
+export default function LoginForm({ onSwitchToRegister }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get success message from registration
-  const successMessage = location.state?.message;
+  const navigate = useNavigate();
 
+  // Xử lý đăng nhập - copy nguyên từ AuthForm gốc
   async function handleLogin(e) {
     e.preventDefault();
     setErrorMessage(null);
@@ -30,11 +25,19 @@ export default function LoginPage() {
     try {
       console.log({ email, password });
       const result = await login({ email, password });
-      if (result.user.roleId === 3) {
+      console.log("Login success:", result);
+      const user = result.user;
+      if (!user) throw new Error("Invalid user object from login");
+
+
+      if (user.roleId === 3) {
         navigate("/admin");
       } else {
-        navigate("/");
+        navigate("/"); 
       }
+
+      // Redirect về home (Header sẽ tự động cập nhật nhờ auth event)
+      // window.location.href = "/";
     } catch (error) {
       console.log("Backend error:", error.response?.data);
       let msg = "Invalid email or password";
@@ -55,30 +58,10 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 flex items-center justify-center p-3"
+      className="min-h-screen bg-indigo-to-br from-slate-900 via-slate-800 to-slate-700 flex items-center justify-center p-3"
       style={{ isolation: "isolate" }}
     >
       <div className="w-full max-w-md">
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-            <svg
-              className="w-4 h-4 text-green-500 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-green-700 text-xs">{successMessage}</p>
-          </div>
-        )}
-
         {/* Error Message */}
         {errorMessage && (
           <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
@@ -124,6 +107,7 @@ export default function LoginPage() {
 
           <form className="px-6 py-5" onSubmit={handleLogin}>
             <div className="space-y-3">
+              {/* Email Field */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1 text-sm">
                   Email
@@ -133,13 +117,13 @@ export default function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className=" text-gray-600 w-full px-3 py-2.5 pl-3 pr-9 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-sm bg-gray-50 hover:bg-white focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2.5 pl-3 pr-9 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-sm bg-gray-50 hover:bg-white focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter your email"
-                    required
                   />
                 </div>
               </div>
 
+              {/* Password Field */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1 text-sm">
                   Password
@@ -149,9 +133,8 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className=" text-gray-600 w-full px-3 py-2.5 pl-3 pr-9 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-sm bg-gray-50 hover:bg-white focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2.5 pl-3 pr-9 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-sm bg-gray-50 hover:bg-white focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter your password"
-                    required
                   />
                   <button
                     type="button"
@@ -205,7 +188,7 @@ export default function LoginPage() {
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-600 rounded-full animate-spin mr-2"></div>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                   Signing In...
                 </>
               ) : (
@@ -214,16 +197,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="text-center pt-3 pb-4">
+          <div className="text-center pt-3">
             <span className="text-gray-600 text-sm">
               Don't have an account?{" "}
             </span>
-            <Link
-              to="/register"
-              className="font-medium transition-colors hover:underline text-sm text-indigo-600 hover:text-indigo-700"
+            <button
+              onClick={onSwitchToRegister}
+              className="font-medium transition-colors hover:underline text-sm text-bg-amber-50 hover:text-indigo-700"
             >
               Register
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -237,5 +220,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
