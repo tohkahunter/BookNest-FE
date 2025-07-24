@@ -141,7 +141,6 @@ export const useBookInLibrary = (bookId) => {
     staleTime: 5 * 60 * 1000,
   });
 };
-
 // Add book to library (alias for useAddBookToShelf)
 export const useAddBookToLibrary = () => {
   const queryClient = useQueryClient();

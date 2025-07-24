@@ -12,10 +12,10 @@ const BookShelfPage = () => {
           {/* Shelves Section */}
           <section>
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
                 🗂️ My bookshelf
               </h2>
-              <p className="text-gray-600 text-sm">Organize books by genre</p>
+              {/* <p className="text-gray-600 text-sm">Organize books by genre</p> */}
             </div>
             <ShelvesList />
           </section>
@@ -26,10 +26,10 @@ const BookShelfPage = () => {
           {/* Books Section */}
           <section>
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
                 📖 My books
               </h2>
-              <p className="text-gray-600 text-sm">All books in the library</p>
+              {/* <p className="text-gray-600 text-sm">All books in the library</p> */}
             </div>
             <MyBooksList />
           </section>

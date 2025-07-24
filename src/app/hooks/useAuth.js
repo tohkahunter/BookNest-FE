@@ -393,7 +393,42 @@ export const useAuth = () => {
     initializeAuth();
   }, [initializeAuth]);
 
-  // Listen for localStorage changes (multi-tab sync)
+  // ✅ NEW: Listen for profile updates from useProfile
+  useEffect(() => {
+    const handleProfileUpdate = (event) => {
+      const updatedUserData = event.detail;
+      console.log(
+        "🔄 Profile update event received in useAuth:",
+        updatedUserData
+      );
+
+      // Update local state immediately
+      setUser((prevUser) => ({
+        ...prevUser,
+        ...updatedUserData,
+      }));
+
+      // Update localStorage
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        const mergedUser = { ...currentUser, ...updatedUserData };
+        localStorage.setItem("user", JSON.stringify(mergedUser));
+        console.log("💾 Updated localStorage with:", mergedUser);
+      }
+
+      // Update React Query cache
+      queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, updatedUserData);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USER_PROFILE });
+    };
+
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
+    };
+  }, [queryClient]);
+
+  // ✅ ENHANCED: Better localStorage sync
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === "token") {
@@ -406,17 +441,44 @@ export const useAuth = () => {
         // User data was updated
         try {
           const newUser = JSON.parse(e.newValue);
-          setUser(newUser);
-          queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, newUser);
+          console.log("📱 User data changed in localStorage:", newUser);
+
+          // Only update if data actually changed
+          if (JSON.stringify(user) !== JSON.stringify(newUser)) {
+            setUser(newUser);
+            queryClient.setQueryData(QUERY_KEYS.USER_PROFILE, newUser);
+            queryClient.invalidateQueries({
+              queryKey: QUERY_KEYS.USER_PROFILE,
+            });
+          }
         } catch (err) {
           console.error("Error parsing user data from storage:", err);
         }
       }
     };
 
+    // Listen for cross-tab changes
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [queryClient]);
+
+    // ✅ CRITICAL: Also listen for same-tab localStorage changes
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function (key, value) {
+      const oldValue = localStorage.getItem(key);
+      originalSetItem.apply(this, arguments);
+
+      if (key === "user" && value !== oldValue) {
+        // Trigger storage event for same tab
+        handleStorageChange({ key, newValue: value, oldValue });
+      }
+    };
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      localStorage.setItem = originalSetItem;
+    };
+  }, [queryClient, user]);
+
+  //update password
 
   // Sync với React Query state khi có data
   useEffect(() => {

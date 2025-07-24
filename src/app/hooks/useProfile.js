@@ -26,7 +26,6 @@ const getUserProfile = async (userId) => {
 };
 
 // Update user profile
-// Update user profile
 const updateUserProfile = async (userId, userData) => {
   if (!userId) {
     throw new Error("Missing userId");
@@ -64,6 +63,42 @@ const updateUserProfile = async (userId, userData) => {
       statusText: error.response?.statusText,
       responseData: error.response?.data,
       requestData: apiData,
+      url: error.config?.url,
+    });
+    throw error;
+  }
+};
+
+// Update user password
+const updateUserPassword = async (userId, newPassword) => {
+  if (!userId) {
+    throw new Error("Missing userId");
+  }
+
+  if (!newPassword) {
+    throw new Error("New password is required");
+  }
+
+  console.log("updateUserPassword called with userId:", userId);
+
+  try {
+    const response = await axiosInstance.put(
+      `/api/User/${userId}/password`,
+      JSON.stringify(newPassword), // API chỉ nhận newPassword string
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("✅ Password update successful:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Password update failed:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      responseData: error.response?.data,
       url: error.config?.url,
     });
     throw error;
@@ -138,14 +173,17 @@ export const useMyProfile = (options = {}) => {
 
 // ==================== MUTATION HOOKS ====================
 
-// Hook to update user profile (including avatar URL)
+// ✅ FIXED: Hook to update user profile with proper sync
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   const { user, updateUser } = useAuth();
 
   return useMutation({
     mutationFn: (userData) => {
-      console.log("Mutation called with:", { userData, userId: user?.id });
+      console.log("🔄 Profile update mutation called:", {
+        userData,
+        userId: user?.id,
+      });
       return updateUserProfile(user?.id, userData);
     },
 
@@ -156,47 +194,89 @@ export const useUpdateProfile = () => {
       // Snapshot previous value
       const previousProfile = queryClient.getQueryData(QUERY_KEYS.MY_PROFILE);
 
-      // Optimistically update profile
+      // Optimistically update profile cache
       queryClient.setQueryData(QUERY_KEYS.MY_PROFILE, (old) => ({
         ...old,
         ...newData,
       }));
 
-      // Return context for rollback
       return { previousProfile };
     },
 
-    onSuccess: (updatedProfile) => {
-      // Update profile cache
+    onSuccess: async (updatedProfile) => {
+      console.log("✅ Profile updated successfully:", updatedProfile);
+
+      // ✅ CRITICAL: Update React Query cache first
       queryClient.setQueryData(QUERY_KEYS.MY_PROFILE, updatedProfile);
 
-      // Update auth context if basic info changed
-      if (
-        updatedProfile.FirstName ||
-        updatedProfile.LastName ||
-        updatedProfile.Email
-      ) {
-        updateUser({
-          FirstName: updatedProfile.FirstName,
-          LastName: updatedProfile.LastName,
-          Email: updatedProfile.Email,
-          ProfilePictureUrl: updatedProfile.ProfilePictureUrl,
-        });
-      }
+      // ✅ CRITICAL: Update useAuth localStorage + state
+      const authUpdateData = {
+        FirstName: updatedProfile.FirstName,
+        LastName: updatedProfile.LastName,
+        Email: updatedProfile.Email,
+        ProfilePictureUrl: updatedProfile.ProfilePictureUrl,
+      };
 
-      // Invalidate related queries
+      console.log("🔄 Syncing with useAuth:", authUpdateData);
+      await updateUser(authUpdateData);
+
+      // ✅ CRITICAL: Force invalidate to trigger re-renders
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MY_PROFILE });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USER_PROFILE });
+
+      // ✅ CRITICAL: Trigger custom event for immediate header update
+      window.dispatchEvent(
+        new CustomEvent("profileUpdated", {
+          detail: {
+            ...user,
+            ...authUpdateData,
+          },
+        })
+      );
     },
 
     onError: (error, newData, context) => {
-      // Rollback on error
+      console.error("❌ Profile update failed:", error);
+
+      // Rollback optimistic update
       if (context?.previousProfile) {
         queryClient.setQueryData(
           QUERY_KEYS.MY_PROFILE,
           context.previousProfile
         );
       }
-      console.error("Profile update error:", error);
+    },
+  });
+};
+
+// Hook to update password
+export const useUpdatePassword = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: (newPassword) => {
+      console.log("🔄 Password update mutation called for userId:", user?.id);
+      return updateUserPassword(user?.id, newPassword);
+    },
+
+    onSuccess: (data) => {
+      console.log("✅ Password updated successfully:", data);
+
+      // Optional: Có thể invalidate user session để force re-login
+      // hoặc chỉ show success message
+
+      // Không cần update cache vì password không được cache
+    },
+
+    onError: (error) => {
+      console.error("❌ Password update failed:", error);
+
+      // Log chi tiết error để debug
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        console.error("Error status:", error.response.status);
+      }
     },
   });
 };
@@ -220,6 +300,7 @@ export const useProfile = () => {
 
   // Mutations
   const updateProfileMutation = useUpdateProfile();
+  const updatePasswordMutation = useUpdatePassword();
 
   // ==================== COMPUTED VALUES ====================
 
@@ -269,6 +350,7 @@ export const useProfile = () => {
 
   // Mutation loading states
   const isUpdating = updateProfileMutation.isPending;
+  const isUpdatingPassword = updatePasswordMutation.isPending;
 
   // ==================== HELPER FUNCTIONS ====================
 
@@ -314,8 +396,8 @@ export const useProfile = () => {
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return "Hôm qua";
-    if (diffDays <= 7) return `${diffDays} ngày trước`;
+    if (diffDays === 1) return "Last day";
+    if (diffDays <= 7) return `${diffDays} days ago`;
     return date.toLocaleDateString("vi-VN");
   };
 
@@ -330,6 +412,39 @@ export const useProfile = () => {
       return {
         success: false,
         error: error.message || "Không thể cập nhật profile",
+      };
+    }
+  };
+
+  // Update password function
+  const updatePassword = async (newPassword) => {
+    try {
+      if (!user?.id) {
+        throw new Error("No authenticated user found");
+      }
+
+      const result = await updatePasswordMutation.mutateAsync(newPassword);
+      return {
+        success: true,
+        data: result,
+        message: "Mật khẩu đã được cập nhật thành công",
+      };
+    } catch (error) {
+      let errorMessage = "Cập nhật mật khẩu thất bại";
+
+      if (error.response?.status === 401) {
+        errorMessage = "Bạn không có quyền thực hiện thao tác này";
+      } else if (error.response?.status === 404) {
+        errorMessage = "Không tìm thấy người dùng";
+      } else if (error.response?.status === 400) {
+        errorMessage = "Mật khẩu hiện tại không đúng";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
       };
     }
   };
@@ -349,6 +464,7 @@ export const useProfile = () => {
     // States
     isLoading,
     isUpdating,
+    isUpdatingPassword,
     isAuthenticated,
     error,
 
@@ -359,6 +475,7 @@ export const useProfile = () => {
 
     // Actions
     updateProfile,
+    updatePassword,
     refreshProfile,
 
     // Utilities
@@ -369,6 +486,7 @@ export const useProfile = () => {
     // Raw mutations (for advanced usage)
     mutations: {
       updateProfile: updateProfileMutation,
+      updatePassword: updatePasswordMutation,
     },
   };
 };

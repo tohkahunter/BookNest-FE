@@ -39,31 +39,26 @@ const AuthLayout = ({
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 flex items-center justify-center p-3"
+      className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 flex items-center justify-center p-0 m-0"
       style={{ isolation: "isolate" }}
     >
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md mx-auto px-4">
         {/* Error Alert */}
         {error && (
-          <div className="mb-3">
+          <div className="mb-4">
             <Alert type="error" message={error} onClose={onClearError} />
           </div>
         )}
 
         {/* Success Alert */}
         {success && (
-          <div className="mb-3">
+          <div className="mb-4">
             <Alert type="success" message={success} onClose={onClearSuccess} />
           </div>
         )}
 
-        {/* Main Card */}
-        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-          {/* Header */}
-
-          {/* Content */}
-          <div className="px-6 py-5">{children}</div>
-        </div>
+        {/* Main Card - Children component will handle this */}
+        {children}
 
         {/* Footer */}
       </div>

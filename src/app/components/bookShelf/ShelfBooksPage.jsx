@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getBooksByShelf } from "../../../services/bookShelfService";
 import {
@@ -14,7 +14,7 @@ const ShelfBooksPage = () => {
   const [actioningBookId, setActioningBookId] = useState(null);
   const queryClient = useQueryClient();
 
-  // 🆕 Use React Query with the actual API service
+  // Use React Query with the actual API service
   const {
     data: booksInShelf,
     isLoading,
@@ -30,14 +30,21 @@ const ShelfBooksPage = () => {
   const removeBookMutation = useRemoveBookFromLibrary();
   const moveBookMutation = useMoveBookToShelf();
 
-  // Get current shelf info from the first book (since all books have same shelf info)
+  // Reading statuses for BookCard
+  const readingStatuses = [
+    { StatusId: 1, StatusName: "Muốn đọc" },
+    { StatusId: 2, StatusName: "Đang đọc" },
+    { StatusId: 3, StatusName: "Đã đọc" },
+  ];
+
+  // Get current shelf info from the first book
   const currentShelf =
     booksInShelf && booksInShelf.length > 0
       ? {
           ShelfId: booksInShelf[0].ShelfId,
           ShelfName: booksInShelf[0].ShelfName,
-          Description: null, // API không trả về description trong response này
-          IsDefault: false, // Assume custom shelf nếu không có thông tin
+          Description: null,
+          IsDefault: false,
         }
       : allShelves?.find((shelf) => shelf.ShelfId === parseInt(shelfId));
 
@@ -114,46 +121,6 @@ const ShelfBooksPage = () => {
       });
     } catch (error) {
       console.error("Remove book error:", error);
-      if (previousData) {
-        queryClient.setQueryData(
-          ["booksByShelf", parseInt(shelfId)],
-          previousData
-        );
-      }
-    } finally {
-      setActioningBookId(null);
-    }
-  };
-
-  const handleMoveBook = async (bookId, newShelfId) => {
-    try {
-      setActioningBookId(bookId);
-
-      const queryKey = ["booksByShelf", parseInt(shelfId)];
-      const previousData = queryClient.getQueryData(queryKey);
-
-      queryClient.setQueryData(queryKey, (old) => {
-        if (!old) return old;
-        return old.filter((book) => book.BookId !== bookId);
-      });
-
-      await moveBookMutation.mutateAsync({ bookId, newShelfId });
-
-      await queryClient.invalidateQueries({
-        queryKey: ["booksByShelf", parseInt(shelfId)],
-        exact: true,
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["myBooks"] });
-      queryClient.invalidateQueries({ queryKey: ["myShelves"] });
-      queryClient.invalidateQueries({ queryKey: ["booksByShelf"] });
-
-      await queryClient.refetchQueries({
-        queryKey: ["booksByShelf", parseInt(shelfId)],
-        exact: true,
-      });
-    } catch (error) {
-      console.error("Move book error:", error);
       if (previousData) {
         queryClient.setQueryData(
           ["booksByShelf", parseInt(shelfId)],
@@ -382,17 +349,23 @@ const ShelfBooksPage = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {booksInShelf.map((book) => (
                       <BookCard
                         key={book.UserBookId}
                         book={book}
-                        allShelves={allShelves}
-                        currentShelf={currentShelf}
+                        readingStatuses={readingStatuses}
+                        shelves={allShelves}
                         onUpdateStatus={handleUpdateStatus}
-                        onRemoveBook={handleRemoveBook}
-                        onMoveBook={handleMoveBook}
-                        isActioning={actioningBookId === book.BookId}
+                        onRemove={handleRemoveBook}
+                        isUpdatingStatus={
+                          actioningBookId === book.BookId &&
+                          updateStatusMutation.isPending
+                        }
+                        isRemoving={
+                          actioningBookId === book.BookId &&
+                          removeBookMutation.isPending
+                        }
                       />
                     ))}
                   </div>
@@ -406,382 +379,343 @@ const ShelfBooksPage = () => {
   );
 };
 
-// Book Card Component (same as modal version)
+// Use the same BookCard component with FIXED image styling
 const BookCard = ({
   book,
-  allShelves,
-  currentShelf,
+  readingStatuses,
+  shelves,
   onUpdateStatus,
-  onRemoveBook,
-  onMoveBook,
-  isActioning,
+  onRemove,
+  isUpdatingStatus,
+  isRemoving,
 }) => {
-  const getStatusConfig = (statusId) => {
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Constants for reading statuses
+  const READING_STATUS = {
+    WANT_TO_READ: 1,
+    CURRENTLY_READING: 2,
+    READ: 3,
+  };
+
+  // Check if book allows progress updates
+  const canUpdateProgress = () => {
+    return book.StatusId === READING_STATUS.CURRENTLY_READING;
+  };
+
+  // Get status badge color
+  const getStatusBadgeColor = (statusId) => {
     switch (statusId) {
       case 1:
-        return {
-          gradient: "from-yellow-400 to-amber-500",
-          bg: "bg-gradient-to-br from-yellow-50 to-amber-50",
-          text: "text-yellow-800",
-          name: "Muốn đọc",
-          icon: "📝",
-          border: "border-yellow-200",
-        };
+        return "bg-amber-100 text-amber-800 border-amber-200";
       case 2:
-        return {
-          gradient: "from-blue-400 to-blue-600",
-          bg: "bg-gradient-to-br from-blue-50 to-cyan-50",
-          text: "text-blue-800",
-          name: "Đang đọc",
-          icon: "📖",
-          border: "border-blue-200",
-        };
+        return "bg-blue-100 text-blue-800 border-blue-200";
       case 3:
-        return {
-          gradient: "from-green-400 to-emerald-500",
-          bg: "bg-gradient-to-br from-green-50 to-emerald-50",
-          text: "text-green-800",
-          name: "Đã đọc",
-          icon: "✅",
-          border: "border-green-200",
-        };
+        return "bg-green-100 text-green-800 border-green-200";
       default:
-        return {
-          gradient: "from-gray-400 to-gray-500",
-          bg: "bg-gray-50",
-          text: "text-gray-700",
-          name: "Không xác định",
-          icon: "❓",
-          border: "border-gray-200",
-        };
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
+  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return null;
     return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
+  // Calculate reading progress percentage
   const getProgressPercentage = () => {
-    // API trả về ReadingProgress trực tiếp
-    return book.ReadingProgress || 0;
+    if (book.CurrentPage && book.PageCount && book.CurrentPage > 0) {
+      return Math.round((book.CurrentPage / book.PageCount) * 100);
+    }
+
+    if (typeof book.ReadingProgress === "number") {
+      if (
+        book.ReadingProgress === 100 &&
+        (!book.CurrentPage || book.CurrentPage === 0)
+      ) {
+        return 0;
+      }
+      return book.ReadingProgress;
+    }
+
+    return 0;
   };
 
   const progressPercentage = getProgressPercentage();
-  const statusConfig = getStatusConfig(book.StatusId);
+
+  // Get status name
+  const statusName =
+    readingStatuses?.find((s) => s.StatusId === book.StatusId)?.StatusName ||
+    "Unknown";
+
+  // Get shelf name
+  const shelfName = book.ShelfId
+    ? shelves?.find((s) => s.ShelfId === book.ShelfId)?.ShelfName ||
+      "Unknown Shelf"
+    : "Không có kệ";
 
   return (
-    <div
-      className={`group bg-white rounded-3xl ${statusConfig.border} border-2 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 overflow-hidden`}
-    >
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex gap-4 mb-6">
-          <div className="relative shrink-0">
-            <div className="w-20 h-28 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/50">
-              {book.CoverImageUrl ? (
-                <img
-                  src={book.CoverImageUrl}
-                  alt={book.BookTitle}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
-                  }}
-                />
-              ) : null}
-              <div
-                className={`w-full h-full flex items-center justify-center text-gray-400 text-2xl ${
-                  book.CoverImageUrl ? "hidden" : "flex"
-                }`}
-              >
-                📖
+    <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 flex flex-col relative">
+      {/* Book Cover Section - Fixed Aspect Ratio */}
+      <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden rounded-t-2xl">
+        {book.CoverImageUrl ? (
+          <img
+            src={book.CoverImageUrl}
+            alt={book.BookTitle}
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.nextSibling.style.display = "flex";
+            }}
+            onClick={() => navigate(`/books/${book.BookId}`)}
+          />
+        ) : null}
+        <div
+          className={`absolute inset-0 flex items-center justify-center text-gray-400 ${
+            book.CoverImageUrl ? "hidden" : "flex"
+          }`}
+        >
+          <div className="text-center">
+            <svg
+              className="w-12 h-12 mx-auto mb-2"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+            </svg>
+            <span className="text-xs font-medium">No Cover</span>
+          </div>
+        </div>
+
+        {/* Status Badge - Positioned on cover */}
+        <div className="absolute top-3 left-3">
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadgeColor(
+              book.StatusId
+            )}`}
+          >
+            {statusName}
+          </span>
+        </div>
+
+        {/* Shelf Badge - Positioned on cover */}
+        <div className="absolute top-3 right-3">
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/90 text-gray-700 border border-gray-200 backdrop-blur-sm">
+            📚 {shelfName}
+          </span>
+        </div>
+      </div>
+
+      {/* Content Section - Flexible but controlled */}
+      <div className="flex-1 p-4 flex flex-col">
+        {/* Book Info - Fixed Height */}
+        <div className="h-20 mb-4">
+          <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2 mb-1">
+            {book.BookTitle}
+          </h3>
+          <p className="text-xs text-gray-600 line-clamp-1">
+            {book.AuthorName}
+          </p>
+          {book.GenreName && (
+            <p className="text-xs text-gray-500 line-clamp-1 mt-1">
+              {book.GenreName}
+            </p>
+          )}
+        </div>
+
+        {/* Progress Section - Dynamic Height */}
+        <div className="mb-4">
+          {book.StatusId === READING_STATUS.CURRENTLY_READING && (
+            <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-medium text-blue-800">
+                  Reading Progress
+                </span>
+                <span className="text-xs font-semibold text-blue-800">
+                  {progressPercentage}%
+                </span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              {book.CurrentPage && book.PageCount && (
+                <div className="text-xs text-blue-700">
+                  Page {book.CurrentPage} of {book.PageCount}
+                </div>
+              )}
+            </div>
+          )}
+
+          {book.StatusId === READING_STATUS.READ && (
+            <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+              <div className="flex items-center justify-center">
+                <span className="text-green-800 text-xs font-medium flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Completed{" "}
+                  {book.FinishDate ? `on ${formatDate(book.FinishDate)}` : ""}
+                </span>
               </div>
             </div>
-            <div
-              className={`absolute -top-2 -right-2 w-10 h-10 bg-gradient-to-br ${statusConfig.gradient} rounded-full flex items-center justify-center shadow-lg ring-3 ring-white`}
-            >
-              <span className="text-white text-lg">{statusConfig.icon}</span>
-            </div>
-          </div>
+          )}
 
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-xl text-gray-900 leading-tight mb-3 group-hover:text-blue-600 transition-colors">
-              {book.BookTitle}
-            </h3>
-            <p className="text-gray-600 font-semibold mb-2 text-lg">
-              {book.AuthorName}
-            </p>
-            {book.GenreName && (
-              <span className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
-                {book.GenreName}
-              </span>
-            )}
-          </div>
+          {book.StatusId === READING_STATUS.WANT_TO_READ && (
+            <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+              <div className="flex items-center justify-center">
+                <span className="text-amber-800 text-xs font-medium flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Want to Read
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Status Badge */}
-        <div
-          className={`inline-flex items-center gap-3 px-4 py-3 ${statusConfig.bg} ${statusConfig.text} rounded-2xl font-semibold text-sm mb-6 shadow-sm`}
-        >
-          <span className="text-lg">{statusConfig.icon}</span>
-          <span>{statusConfig.name}</span>
-        </div>
-
-        {/* Progress */}
-        {book.StatusId === 2 && book.ReadingProgress > 0 && (
-          <div className="mb-6 p-5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border border-blue-100 shadow-sm">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-semibold text-blue-900 flex items-center gap-2">
-                <span>📊</span>
-                Tiến độ đọc
-              </span>
-              <span className="text-lg font-bold text-blue-900 bg-white px-3 py-1 rounded-full shadow-sm">
-                {book.ReadingProgress}%
-              </span>
+        {/* Dates Section - Fixed Height */}
+        <div className="h-12 mb-4">
+          <div className="text-xs text-gray-500 space-y-1">
+            <div className="flex justify-between">
+              <span>Added:</span>
+              <span className="font-medium">{formatDate(book.DateAdded)}</span>
             </div>
-            <div className="w-full bg-blue-200 rounded-full h-3 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-1000 ease-out shadow-sm"
-                style={{ width: `${book.ReadingProgress}%` }}
-              ></div>
-            </div>
-            {book.CurrentPage && book.PageCount && (
-              <p className="text-xs text-blue-700 mt-2 font-medium">
-                Trang {book.CurrentPage} / {book.PageCount}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Dates */}
-        {(book.StartDate || book.FinishDate) && (
-          <div className="flex flex-wrap gap-3 mb-6">
             {book.StartDate && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-800 text-sm font-medium rounded-xl border border-green-100">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" />
-                </svg>
-                Bắt đầu: {formatDate(book.StartDate)}
+              <div className="flex justify-between">
+                <span>Started:</span>
+                <span className="font-medium">
+                  {formatDate(book.StartDate)}
+                </span>
               </div>
             )}
             {book.FinishDate && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-800 text-sm font-medium rounded-xl border border-purple-100">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Hoàn thành: {formatDate(book.FinishDate)}
-              </div>
-            )}
-            {book.DateAdded && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-800 text-sm font-medium rounded-xl border border-blue-100">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M12 4v16m8-8H4" />
-                </svg>
-                Thêm vào: {formatDate(book.DateAdded)}
+              <div className="flex justify-between">
+                <span>Finished:</span>
+                <span className="font-medium">
+                  {formatDate(book.FinishDate)}
+                </span>
               </div>
             )}
           </div>
-        )}
+        </div>
 
-        {/* Notes */}
+        {/* Notes Section - Fixed Height */}
         {book.Notes && (
-          <div className="mb-6 p-4 bg-gradient-to-br from-amber-50 to-orange-50 border-l-4 border-amber-400 rounded-xl">
-            <div className="flex gap-3">
-              <span className="text-amber-600 text-xl shrink-0">💭</span>
-              <div>
-                <h4 className="font-semibold text-amber-900 mb-1">Ghi chú</h4>
-                <p className="text-sm text-amber-800 leading-relaxed">
-                  {book.Notes}
-                </p>
-              </div>
+          <div className="h-12 mb-4">
+            <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+              <p className="text-xs text-gray-600 line-clamp-2">
+                <span className="text-gray-400">💭</span> {book.Notes}
+              </p>
             </div>
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          {/* Status Change */}
-          <div className="dropdown dropdown-top">
-            <label
-              tabIndex={0}
-              className="btn bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-none flex-1 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="mt-auto pt-4 border-t border-gray-100">
+          <div className="flex gap-2">
+            {/* Status Update Button */}
+            <div className="dropdown flex-1">
+              <label
+                tabIndex={0}
+                className="text-gray-700 btn btn-sm btn-outline w-full text-xs normal-case font-medium"
+                disabled={isUpdatingStatus}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              Trạng thái
-            </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu p-3 shadow-2xl bg-white rounded-3xl w-80 border-2 border-gray-100 z-50 mb-3"
-            >
-              <li>
-                <a
-                  onClick={() => onUpdateStatus(book.BookId, 1)}
-                  className="flex items-center p-4 hover:bg-yellow-50 rounded-2xl transition-colors"
-                >
-                  <div className="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center mr-4 shadow-sm">
-                    <span className="text-xl">📝</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900">Muốn đọc</div>
-                    <div className="text-xs text-gray-500">
-                      Thêm vào danh sách đọc
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => onUpdateStatus(book.BookId, 2)}
-                  className="flex items-center p-4 hover:bg-blue-50 rounded-2xl transition-colors"
-                >
-                  <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mr-4 shadow-sm">
-                    <span className="text-xl">📖</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900">Đang đọc</div>
-                    <div className="text-xs text-gray-500">
-                      Bắt đầu theo dõi tiến độ
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a
-                  onClick={() => onUpdateStatus(book.BookId, 3)}
-                  className="flex items-center p-4 hover:bg-green-50 rounded-2xl transition-colors"
-                >
-                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mr-4 shadow-sm">
-                    <span className="text-xl">✅</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900">Đã đọc</div>
-                    <div className="text-xs text-gray-500">
-                      Đánh dấu hoàn thành
-                    </div>
-                  </div>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Move Shelf */}
-          <div className="dropdown dropdown-top dropdown-end">
-            <label
-              tabIndex={0}
-              className="btn bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-none flex-1 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                />
-              </svg>
-              Chuyển kệ
-            </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu p-3 shadow-2xl bg-white rounded-3xl w-80 border-2 border-gray-100 z-50 mb-3 max-h-64 overflow-y-auto"
-            >
-              <li>
-                <a
-                  onClick={() => onMoveBook(book.BookId, null)}
-                  className="flex items-center p-4 hover:bg-gray-50 rounded-2xl transition-colors"
-                >
-                  <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center mr-4 shadow-sm">
-                    <span className="text-xl">🏠</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900">Không có kệ</div>
-                    <div className="text-xs text-gray-500">
-                      Bỏ khỏi tất cả kệ sách
-                    </div>
-                  </div>
-                </a>
-              </li>
-              {allShelves
-                ?.filter((s) => s.ShelfId !== currentShelf.ShelfId)
-                .map((shelf) => (
-                  <li key={shelf.ShelfId}>
-                    <a
-                      onClick={() => onMoveBook(book.BookId, shelf.ShelfId)}
-                      className="flex items-center p-4 hover:bg-purple-50 rounded-2xl transition-colors"
+                {isUpdatingStatus ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-3.5 h-3.5 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mr-4 shadow-sm">
-                        <span className="text-xl">📚</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-gray-900 truncate">
-                          {shelf.ShelfName}
-                        </div>
-                        {shelf.Description && (
-                          <div className="text-xs text-gray-500 truncate">
-                            {shelf.Description}
-                          </div>
-                        )}
-                      </div>
-                    </a>
-                  </li>
-                ))}
-            </ul>
-          </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Status
+                  </>
+                )}
+              </label>
+              {!isUpdatingStatus && (
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu p-2 shadow-lg bg-white rounded-lg w-48 z-50 border border-gray-200"
+                >
+                  {readingStatuses?.map((status) => (
+                    <li key={status.StatusId}>
+                      <a
+                        onClick={() =>
+                          onUpdateStatus(book.BookId, status.StatusId)
+                        }
+                        className={`text-xs ${
+                          book.StatusId === status.StatusId
+                            ? "bg-blue-50 text-blue-700 font-medium"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        {status.StatusName}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-          {/* Delete */}
-          <button
-            onClick={() => onRemoveBook(book.BookId, book.BookTitle)}
-            className="btn bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-none w-16 shadow-lg hover:shadow-xl transition-all duration-200"
-            disabled={isActioning}
-          >
-            {isActioning ? (
-              <span className="loading loading-spinner loading-sm"></span>
-            ) : (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1v3M4 7h16"
-                />
-              </svg>
-            )}
-          </button>
+            {/* Remove Button */}
+            <button
+              onClick={() => onRemove(book.BookId, book.BookTitle)}
+              className="btn btn-sm btn-ghost text-red-600 hover:bg-red-50 p-2"
+              disabled={isRemoving}
+            >
+              {isRemoving ? (
+                <span className="loading loading-spinner loading-xs"></span>
+              ) : (
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

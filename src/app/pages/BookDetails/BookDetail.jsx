@@ -1,4 +1,3 @@
-// src/app/pages/BookDetail/BookDetail.jsx - Fixed Cache Update Issues
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +7,7 @@ import { genreService } from "../../../services/genreService";
 import { QUERY_KEYS } from "../../../lib/queryKeys";
 import "./styles/BookDetail.css";
 import ReviewSection from "../../components/review/ReviewSection";
+
 import {
   useBookInLibrary,
   useAddBookToLibrary,
@@ -25,6 +25,7 @@ function BookDetail() {
   const [userRating, setUserRating] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState(""); // State để kiểm soát <select>
 
   // Fetch book data
   const {
@@ -51,7 +52,7 @@ function BookDetail() {
     enabled: !!book?.GenreId,
   });
 
-  // ✅ Library integration hooks
+  // Library integration hooks
   const { data: bookInLibrary, isLoading: isCheckingLibrary } =
     useBookInLibrary(id);
   const { data: readingStatuses } = useReadingStatuses();
@@ -59,48 +60,66 @@ function BookDetail() {
   const addBookMutation = useAddBookToLibrary();
   const updateStatusMutation = useUpdateBookStatus();
 
-  // ✅ Simple add to library handler with page reload
+  // Đồng bộ selectedStatus với bookInLibrary
+  useEffect(() => {
+    if (
+      !isCheckingLibrary &&
+      bookInLibrary?.Exists &&
+      bookInLibrary.UserBook?.StatusId
+    ) {
+      setSelectedStatus(bookInLibrary.UserBook.StatusId);
+      console.log("🔍 Synced selectedStatus:", bookInLibrary.UserBook.StatusId);
+    } else if (!isCheckingLibrary) {
+      setSelectedStatus("");
+      console.log("🔍 No status found, resetting selectedStatus");
+    }
+  }, [bookInLibrary, isCheckingLibrary]);
+
+  // Enhanced add to library handler
   const handleAddToLibrary = async ({ statusId, shelfId }) => {
     try {
-      // Make API call
       await addBookMutation.mutateAsync({
         bookId: parseInt(id),
         statusId: statusId,
         shelfId: shelfId,
       });
 
-      // Show success message
       toast.success("Sách đã được thêm vào thư viện!");
-
-      // Wait a bit for toast to show, then reload page
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.BOOK_IN_LIBRARY(id),
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CAN_REVIEW(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MY_REVIEW(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USER_BOOKS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USER_SHELVES });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BOOK_REVIEWS(id) });
     } catch (error) {
       console.error("Add book error:", error);
       toast.error("Có lỗi khi thêm sách vào thư viện");
     }
   };
 
-  // ✅ Simple update status handler with page reload
+  // Enhanced update status handler
   const handleUpdateStatus = async (newStatusId) => {
     try {
-      // Make API call
+      setSelectedStatus(newStatusId); // Cập nhật UI ngay lập tức
       await updateStatusMutation.mutateAsync({
         bookId: parseInt(id),
         newStatusId: newStatusId,
       });
 
-      // Show success message
       toast.success("Đã cập nhật trạng thái sách!");
-
-      // Wait a bit for toast to show, then reload page
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.BOOK_IN_LIBRARY(id),
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CAN_REVIEW(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MY_REVIEW(id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USER_BOOKS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BOOK_REVIEWS(id) });
     } catch (error) {
       console.error("Update status error:", error);
       toast.error("Có lỗi khi cập nhật trạng thái");
+      setSelectedStatus(bookInLibrary?.UserBook?.StatusId || "");
     }
   };
 
@@ -121,25 +140,25 @@ function BookDetail() {
         return {
           color: "bg-yellow-500 hover:bg-yellow-600",
           icon: "📝",
-          label: "Muốn đọc",
+          label: "Want to read",
         };
       case 2:
         return {
           color: "bg-blue-500 hover:bg-blue-600",
           icon: "📖",
-          label: "Đang đọc",
+          label: "Currently reading",
         };
       case 3:
         return {
           color: "bg-green-500 hover:bg-green-600",
           icon: "✅",
-          label: "Đã đọc",
+          label: "Read",
         };
       default:
         return {
           color: "bg-gray-500 hover:bg-gray-600",
           icon: "❓",
-          label: "Không xác định",
+          label: "Unknown",
         };
     }
   };
@@ -226,7 +245,7 @@ function BookDetail() {
                 </div>
               </div>
 
-              {/* ✅ Reading Actions - Enhanced with better loading states */}
+              {/* Reading Actions */}
               <div className="rounded-lg p-4 space-y-4 text-center">
                 {isCheckingLibrary ? (
                   // Loading state
@@ -235,7 +254,7 @@ function BookDetail() {
                     <div className="w-full h-8 bg-gray-100 rounded animate-pulse"></div>
                   </div>
                 ) : !bookInLibrary?.Exists ? (
-                  // ✅ Book NOT in library - Show Add form
+                  // Book NOT in library - Show Add form
                   <AddToLibraryForm
                     onAdd={handleAddToLibrary}
                     isAdding={addBookMutation.isPending}
@@ -243,7 +262,7 @@ function BookDetail() {
                     shelves={shelves}
                   />
                 ) : (
-                  // ✅ Book IN library - Show current status and update options
+                  // Book IN library - Show current status and update options
                   <div className="space-y-4">
                     {/* Current Status Display */}
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -294,30 +313,27 @@ function BookDetail() {
                     )}
 
                     {/* Update Status Dropdown */}
-                    {/* <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        Thay đổi trạng thái:
+                    <div className="space-y-2">
+                      <label className=" text-sm font-medium text-gray-700">
+                        Update Status:
                       </label>
-                      <select
-                        onChange={(e) =>
-                          handleUpdateStatus(parseInt(e.target.value))
-                        }
-                        disabled={updateStatusMutation.isPending}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50"
-                        defaultValue=""
-                      >
-                        <option value="" disabled>
-                          {updateStatusMutation.isPending
-                            ? "Đang cập nhật..."
-                            : "Chọn trạng thái mới"}
-                        </option>
-                        {readingStatuses
-                          ?.filter(
-                            (status) =>
-                              status.StatusId !==
-                              bookInLibrary.UserBook?.StatusId
-                          )
-                          .map((status) => (
+                      {isCheckingLibrary ? (
+                        <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+                      ) : (
+                        <select
+                          value={selectedStatus}
+                          onChange={(e) =>
+                            handleUpdateStatus(parseInt(e.target.value))
+                          }
+                          disabled={updateStatusMutation.isPending}
+                          className="text-gray-700 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50"
+                        >
+                          <option value="" disabled>
+                            {updateStatusMutation.isPending
+                              ? "Updating..."
+                              : "Select new status"}
+                          </option>
+                          {readingStatuses?.map((status) => (
                             <option
                               key={status.StatusId}
                               value={status.StatusId}
@@ -325,8 +341,9 @@ function BookDetail() {
                               {getStatusConfig(status.StatusId).label}
                             </option>
                           ))}
-                      </select>
-                    </div> */}
+                        </select>
+                      )}
+                    </div>
 
                     {/* Quick Actions */}
                     <div className="pt-2 border-t border-gray-200">
@@ -535,7 +552,7 @@ function BookDetail() {
   );
 }
 
-// ✅ Enhanced Add to Library Form Component
+// Add to Library Form Component
 const AddToLibraryForm = ({ onAdd, isAdding, readingStatuses, shelves }) => {
   const [selectedStatus, setSelectedStatus] = useState(1); // Default: Want to Read
   const [selectedShelf, setSelectedShelf] = useState("");
@@ -543,13 +560,13 @@ const AddToLibraryForm = ({ onAdd, isAdding, readingStatuses, shelves }) => {
   const getStatusConfig = (statusId) => {
     switch (statusId) {
       case 1:
-        return { color: "bg-yellow-500", icon: "📝", label: "Muốn đọc" };
+        return { color: "bg-yellow-500", icon: "📝", label: "Want to read" };
       case 2:
-        return { color: "bg-blue-500", icon: "📖", label: "Đang đọc" };
+        return { color: "bg-blue-500", icon: "📖", label: "Currently reading" };
       case 3:
-        return { color: "bg-green-500", icon: "✅", label: "Đã đọc" };
+        return { color: "bg-green-500", icon: "✅", label: "Read" };
       default:
-        return { color: "bg-gray-500", icon: "❓", label: "Không xác định" };
+        return { color: "bg-gray-500", icon: "❓", label: "Unknown" };
     }
   };
 

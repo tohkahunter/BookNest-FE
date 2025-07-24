@@ -30,6 +30,8 @@ import AllBooks from "../components/book/AllBooks";
 import BookShelfPage from "../pages/BookShelf";
 import ShelfBooksPage from "../components/bookShelf/ShelfBooksPage";
 import EditProfilePage from "../pages/Profile/EditProfilePage";
+import LoginPage from "../pages/Log In/Login";
+import RegisterPage from "../pages/Register/Register";
 
 // 🆕 Error Fallback Component
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -136,7 +138,7 @@ export default function MainRoutes() {
               path="/login"
               element={
                 <AuthLayout>
-                  <AuthContainer />
+                  <LoginPage />
                 </AuthLayout>
               }
             />
@@ -145,7 +147,7 @@ export default function MainRoutes() {
               path="/register"
               element={
                 <AuthLayout>
-                  <AuthContainer />
+                  <RegisterPage />
                 </AuthLayout>
               }
             />

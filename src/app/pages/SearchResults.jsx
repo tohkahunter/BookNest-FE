@@ -285,7 +285,7 @@ const SearchResults = () => {
                             // Handle want to read action
                           }}
                         >
-                          📖 Want to Read
+                          📖 View Details
                         </button>
                       </div>
                     </div>

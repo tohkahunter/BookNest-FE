@@ -16,13 +16,13 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
     const newErrors = {};
 
     if (!formData.shelfName.trim()) {
-      newErrors.shelfName = "Tên kệ sách không được để trống";
+      newErrors.shelfName = "Book shelf name is required";
     } else if (formData.shelfName.length > 100) {
-      newErrors.shelfName = "Tên kệ sách không được quá 100 ký tự";
+      newErrors.shelfName = "Book shelf name must be at most 100 characters";
     }
 
     if (formData.description && formData.description.length > 255) {
-      newErrors.description = "Mô tả không được quá 255 ký tự";
+      newErrors.description = "Description must be at most 255 characters";
     }
 
     setErrors(newErrors);
@@ -99,14 +99,16 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* Modal content */}
         <div className="py-4">
-          <h2 className="text-lg font-semibold mb-4">📚 Tạo kệ sách mới</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            📚 Create New Book Shelf
+          </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Shelf Name */}
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">
-                  Tên kệ sách <span className="text-error">*</span>
+                  Book shelf name <span className="text-error">*</span>
                 </span>
               </label>
               <input
@@ -114,7 +116,7 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
                 name="shelfName"
                 value={formData.shelfName}
                 onChange={handleInputChange}
-                placeholder="VD: Sách yêu thích, Đang đọc 2024, Khoa học viễn tưởng..."
+                placeholder="VD: My Favorite Books"
                 className={`input input-bordered w-full ${
                   errors.shelfName ? "input-error" : ""
                 }`}
@@ -130,7 +132,7 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
               )}
               <label className="label">
                 <span className="label-text-alt text-gray-500">
-                  {formData.shelfName.length}/100 ký tự
+                  {formData.shelfName.length}/100 characters
                 </span>
               </label>
             </div>
@@ -138,13 +140,13 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Description */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Mô tả</span>
+                <span className="label-text font-medium">Description</span>
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Mô tả ngắn về kệ sách này..."
+                placeholder="Short description of this book shelf..."
                 className={`textarea textarea-bordered w-full h-20 ${
                   errors.description ? "textarea-error" : ""
                 }`}
@@ -159,7 +161,7 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
               )}
               <label className="label">
                 <span className="label-text-alt text-gray-500">
-                  {formData.description.length}/255 ký tự
+                  {formData.description.length}/255 characters
                 </span>
               </label>
             </div>
@@ -172,7 +174,7 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
                 className="btn btn-ghost"
                 disabled={createShelfMutation.isPending}
               >
-                Hủy
+                Cancel
               </button>
               <button
                 type="submit"
@@ -186,10 +188,10 @@ const CreateShelfModal = ({ isOpen, onClose, onSuccess }) => {
                 {createShelfMutation.isPending ? (
                   <>
                     <span className="loading loading-spinner loading-sm"></span>
-                    Đang tạo...
+                    Creating...
                   </>
                 ) : (
-                  <>✨ Tạo kệ sách</>
+                  <>✨ Create Book Shelf</>
                 )}
               </button>
             </div>

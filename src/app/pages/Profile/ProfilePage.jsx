@@ -152,7 +152,7 @@ const ProfilePage = () => {
                   className="text-sm text-orange-600 hover:text-orange-700 transition-colors font-medium hover:underline"
                   onClick={handleEditProfile}
                 >
-                  (chỉnh sửa profile)
+                  (Edit profile)
                 </button>
               </div>
 
@@ -161,7 +161,7 @@ const ProfilePage = () => {
                 {/* Basic Info */}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-700 uppercase tracking-wide text-xs">
-                    Thông tin cơ bản
+                    Infomation
                   </h3>
 
                   <div className="space-y-2">
@@ -183,7 +183,7 @@ const ProfilePage = () => {
 
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500 min-w-[80px]">
-                        Trạng thái:
+                        Status:
                       </span>
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
@@ -199,9 +199,7 @@ const ProfilePage = () => {
                               : "bg-red-500"
                           }`}
                         ></span>
-                        {user?.IsActive !== false
-                          ? "Hoạt động"
-                          : "Không hoạt động"}
+                        {user?.IsActive !== false ? "Active" : "Inactive"}
                       </span>
                     </div>
                   </div>
@@ -210,38 +208,36 @@ const ProfilePage = () => {
                 {/* Activity Info */}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-700 uppercase tracking-wide text-xs">
-                    Hoạt động
+                    Activity
                   </h3>
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500 min-w-[100px]">
-                        Tham gia:
+                        Date registered:
                       </span>
                       <span className="text-gray-900">
-                        {formattedRegistrationDate || "Chưa có thông tin"}
+                        {formattedRegistrationDate || "No information"}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500 min-w-[100px]">
-                        Đăng nhập cuối:
+                        Last login:
                       </span>
                       <span className="text-gray-900">
-                        {formattedLastLogin || "Chưa có thông tin"}
+                        {formattedLastLogin || "No information"}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 min-w-[100px]">
-                        Vai trò:
-                      </span>
+                      <span className="text-gray-500 min-w-[100px]">Role:</span>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {user?.RoleId === 1
                           ? "Admin"
                           : user?.RoleId === 2
                           ? "User"
-                          : "Người dùng"}
+                          : "User"}
                       </span>
                     </div>
                   </div>
@@ -266,8 +262,8 @@ const ProfilePage = () => {
                 <span className="text-xl">📚</span>
               </div>
               <div className="text-left">
-                <div className="font-medium text-gray-900">Thư viện sách</div>
-                <div className="text-sm text-gray-500">Xem sách của bạn</div>
+                <div className="font-medium text-gray-900">Bookshelf</div>
+                <div className="text-sm text-gray-500">View your books</div>
               </div>
             </button>
 
@@ -279,21 +275,23 @@ const ProfilePage = () => {
                 <span className="text-xl">⚙️</span>
               </div>
               <div className="text-left">
-                <div className="font-medium text-gray-900">Cài đặt</div>
-                <div className="text-sm text-gray-500">Chỉnh sửa thông tin</div>
+                <div className="font-medium text-gray-900">Settings</div>
+                <div className="text-sm text-gray-500">
+                  Edit your information
+                </div>
               </div>
             </button>
 
             <button
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/books")}
             >
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <span className="text-xl">🔍</span>
               </div>
               <div className="text-left">
-                <div className="font-medium text-gray-900">Khám phá</div>
-                <div className="text-sm text-gray-500">Tìm sách mới</div>
+                <div className="font-medium text-gray-900">Explore</div>
+                <div className="text-sm text-gray-500">Find new books</div>
               </div>
             </button>
           </div>

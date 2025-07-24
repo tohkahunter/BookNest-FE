@@ -73,7 +73,7 @@ const AddBookModal = ({ isOpen, onClose, onSuccess }) => {
       <div className="modal-box max-w-4xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-lg">📚 Thêm sách vào thư viện</h3>
+          <h3 className="font-bold text-lg">📚 Add Book to Library</h3>
           <button
             onClick={handleClose}
             className="btn btn-sm btn-circle btn-ghost"
@@ -87,11 +87,11 @@ const AddBookModal = ({ isOpen, onClose, onSuccess }) => {
           {/* Search input */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">Tìm kiếm sách</span>
+              <span className="label-text font-medium">Search Books</span>
             </label>
             <input
               type="text"
-              placeholder="Nhập tên sách, tác giả, hoặc ISBN..."
+              placeholder="Enter book title, author, or ISBN..."
               className="input input-bordered w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -104,7 +104,7 @@ const AddBookModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Reading status */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Trạng thái đọc</span>
+                <span className="label-text font-medium">Reading Status</span>
               </label>
               <select
                 className="select select-bordered w-full"
@@ -122,16 +122,14 @@ const AddBookModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Shelf selection */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">
-                  Kệ sách (tùy chọn)
-                </span>
+                <span className="label-text font-medium">Shelf (optional)</span>
               </label>
               <select
                 className="select select-bordered w-full"
                 value={selectedShelf}
                 onChange={(e) => setSelectedShelf(e.target.value)}
               >
-                <option value="">Không chọn kệ</option>
+                <option value="">No shelf selected</option>
                 {shelves?.map((shelf) => (
                   <option key={shelf.ShelfId} value={shelf.ShelfId}>
                     {shelf.ShelfName}
@@ -147,7 +145,7 @@ const AddBookModal = ({ isOpen, onClose, onSuccess }) => {
           {!searchTerm.trim() ? (
             <div className="text-center py-8 text-gray-500">
               <div className="text-4xl mb-2">🔍</div>
-              <p>Nhập từ khóa để tìm kiếm sách</p>
+              <p>Enter keywords to search for books</p>
             </div>
           ) : booksLoading ? (
             <div className="flex justify-center py-8">
@@ -156,7 +154,7 @@ const AddBookModal = ({ isOpen, onClose, onSuccess }) => {
           ) : filteredBooks.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <div className="text-4xl mb-2">📚</div>
-              <p>Không tìm thấy sách nào với từ khóa "{searchTerm}"</p>
+              <p>No books found with the keyword "{searchTerm}"</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -175,7 +173,7 @@ const AddBookModal = ({ isOpen, onClose, onSuccess }) => {
         {/* Footer */}
         <div className="modal-action">
           <button onClick={handleClose} className="btn btn-ghost">
-            Đóng
+            Close
           </button>
         </div>
       </div>
@@ -222,7 +220,7 @@ const BookSearchItem = ({ book, onAdd, isAdding }) => {
         )}
         {book.PublicationYear && (
           <p className="text-xs text-gray-400">
-            Năm xuất bản: {book.PublicationYear}
+            Publication Year: {book.PublicationYear}
           </p>
         )}
       </div>
@@ -230,7 +228,7 @@ const BookSearchItem = ({ book, onAdd, isAdding }) => {
       {/* Add button */}
       <div className="flex-shrink-0">
         {isAlreadyInLibrary ? (
-          <div className="badge badge-success">Đã có trong thư viện</div>
+          <div className="badge badge-success">Already in Library</div>
         ) : (
           <button
             onClick={() => onAdd(book)}
@@ -240,10 +238,10 @@ const BookSearchItem = ({ book, onAdd, isAdding }) => {
             {isAdding ? (
               <>
                 <span className="loading loading-spinner loading-xs"></span>
-                Đang thêm...
+                Adding...
               </>
             ) : (
-              "Thêm vào thư viện"
+              "Add to Library"
             )}
           </button>
         )}

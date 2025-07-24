@@ -1,4 +1,5 @@
-// src/app/components/BookShelf/MyBooksList.jsx
+// src/app/components/BookShelf/MyBooksList.jsx - Updated version
+
 import React, { useState, useMemo } from "react";
 import {
   useMyBooks,
@@ -29,7 +30,7 @@ const MyBooksList = () => {
   const updateStatusMutation = useUpdateBookStatus();
   const removeBookMutation = useRemoveBookFromLibrary();
 
-  // Filter books based on selected filters and search
+  // ✅ UPDATED: Filter books with enhanced shelf filtering
   const filteredBooks = useMemo(() => {
     if (!books) return [];
 
@@ -41,10 +42,23 @@ const MyBooksList = () => {
       filtered = filtered.filter((book) => book.StatusId === statusId);
     }
 
-    // Filter by shelf
+    // ✅ UPDATED: Filter by shelf with "none" option
     if (selectedShelfFilter !== "all") {
-      const shelfId = parseInt(selectedShelfFilter);
-      filtered = filtered.filter((book) => book.ShelfId === shelfId);
+      if (selectedShelfFilter === "none") {
+        // Show books without shelf assignment
+        filtered = filtered.filter(
+          (book) =>
+            !book.ShelfId ||
+            book.ShelfId === null ||
+            book.ShelfId === undefined ||
+            book.ShelfId === "" ||
+            book.ShelfId === 0
+        );
+      } else {
+        // Show books from specific shelf
+        const shelfId = parseInt(selectedShelfFilter);
+        filtered = filtered.filter((book) => book.ShelfId === shelfId);
+      }
     }
 
     // Filter by search term
@@ -61,18 +75,53 @@ const MyBooksList = () => {
     return filtered;
   }, [books, selectedStatusFilter, selectedShelfFilter, searchTerm]);
 
-  // Group books by status for statistics
+  // ✅ UPDATED: Enhanced book stats with shelf statistics
   const bookStats = useMemo(() => {
     if (!books)
-      return { total: 0, wantToRead: 0, currentlyReading: 0, read: 0 };
+      return {
+        total: 0,
+        wantToRead: 0,
+        currentlyReading: 0,
+        read: 0,
+        withoutShelf: 0,
+      };
+
+    const withoutShelf = books.filter(
+      (book) =>
+        !book.ShelfId ||
+        book.ShelfId === null ||
+        book.ShelfId === undefined ||
+        book.ShelfId === "" ||
+        book.ShelfId === 0
+    ).length;
 
     return {
       total: books.length,
       wantToRead: books.filter((book) => book.StatusId === 1).length,
       currentlyReading: books.filter((book) => book.StatusId === 2).length,
       read: books.filter((book) => book.StatusId === 3).length,
+      withoutShelf,
     };
   }, [books]);
+
+  // ✅ HELPER: Get count of books in specific shelf
+  const getShelfBookCount = (shelfId) => {
+    if (!books) return 0;
+    return books.filter((book) => book.ShelfId === shelfId).length;
+  };
+
+  // ✅ HELPER: Get count of books without shelf
+  const getBooksWithoutShelfCount = () => {
+    if (!books) return 0;
+    return books.filter(
+      (book) =>
+        !book.ShelfId ||
+        book.ShelfId === null ||
+        book.ShelfId === undefined ||
+        book.ShelfId === "" ||
+        book.ShelfId === 0
+    ).length;
+  };
 
   const handleStatusUpdate = async (bookId, newStatusId) => {
     try {
@@ -85,7 +134,7 @@ const MyBooksList = () => {
   const handleRemoveBook = async (bookId, bookTitle) => {
     if (
       !confirm(
-        `Bạn có chắc chắn muốn xóa "${bookTitle}" khỏi thư viện?\n\nTất cả tiến độ đọc và ghi chú sẽ bị xóa.`
+        `You want to remove "${bookTitle}" from your library?\n\nAll reading progress and notes will be deleted.`
       )
     ) {
       return;
@@ -114,7 +163,7 @@ const MyBooksList = () => {
   if (booksError) {
     return (
       <div className="alert alert-error">
-        <span>❌ Lỗi khi tải danh sách sách: {booksError.message}</span>
+        <span>❌ Error loading books list: {booksError.message}</span>
       </div>
     );
   }
@@ -124,11 +173,8 @@ const MyBooksList = () => {
       {/* Header with statistics */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-gray-700 text-2xl font-bold">
-            📚 Thư viện của tôi
-          </h2>
           <p className="text-gray-600 mt-1">
-            Quản lý sách và theo dõi tiến độ đọc
+            Manage your books and track your reading progress
           </p>
         </div>
         <button
@@ -148,32 +194,32 @@ const MyBooksList = () => {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Thêm sách
+          Add Book
         </button>
       </div>
 
       {/* Statistics cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="stat bg-base-100 shadow rounded-lg">
-          <div className="stat-title text-sm">Tổng số sách</div>
+          <div className="stat-title text-sm">Total Books</div>
           <div className="stat-value text-2xl text-primary">
             {bookStats.total}
           </div>
         </div>
         <div className="stat bg-base-100 shadow rounded-lg">
-          <div className="stat-title text-sm">Muốn đọc</div>
+          <div className="stat-title text-sm">Want to Read</div>
           <div className="stat-value text-2xl text-warning">
             {bookStats.wantToRead}
           </div>
         </div>
         <div className="stat bg-base-100 shadow rounded-lg">
-          <div className="stat-title text-sm">Đang đọc</div>
+          <div className="stat-title text-sm">Currently Reading</div>
           <div className="stat-value text-2xl text-info">
             {bookStats.currentlyReading}
           </div>
         </div>
         <div className="stat bg-base-100 shadow rounded-lg">
-          <div className="stat-title text-sm">Đã đọc</div>
+          <div className="stat-title text-sm">Read</div>
           <div className="stat-value text-2xl text-success">
             {bookStats.read}
           </div>
@@ -200,26 +246,34 @@ const MyBooksList = () => {
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
           >
-            <option value="all">Tất cả trạng thái</option>
-            {readingStatuses?.map((status) => (
-              <option key={status.StatusId} value={status.StatusId}>
-                {status.StatusName}
-              </option>
-            ))}
+            <option value="all">All Statuses </option>
+            {readingStatuses?.map((status) => {
+              const count =
+                books?.filter((book) => book.StatusId === status.StatusId)
+                  .length || 0;
+              return (
+                <option key={status.StatusId} value={status.StatusId}>
+                  {status.StatusName} ({count})
+                </option>
+              );
+            })}
           </select>
         </div>
 
-        {/* Shelf filter */}
+        {/* ✅ UPDATED: Shelf filter with "No shelf" option */}
         <div className="form-control w-full md:w-auto">
           <select
             className="select select-bordered w-full md:w-48"
             value={selectedShelfFilter}
             onChange={(e) => setSelectedShelfFilter(e.target.value)}
           >
-            <option value="all">Tất cả kệ sách</option>
+            <option value="all">📚 All bookshelves ({bookStats.total})</option>
+            <option value="none">
+              🏠 No shelf ({getBooksWithoutShelfCount()})
+            </option>
             {shelves?.map((shelf) => (
               <option key={shelf.ShelfId} value={shelf.ShelfId}>
-                {shelf.ShelfName}
+                📖 {shelf.ShelfName} ({getShelfBookCount(shelf.ShelfId)})
               </option>
             ))}
           </select>
@@ -237,56 +291,101 @@ const MyBooksList = () => {
             }}
             className="btn btn-ghost btn-sm"
           >
-            Xóa bộ lọc
+            Clear Filters
           </button>
         )}
       </div>
 
-      {/* Books list */}
+      {/* ✅ UPDATED: Enhanced empty state messages */}
       {filteredBooks.length === 0 ? (
         <div className="text-center py-12 bg-base-200 rounded-lg">
           <div className="text-6xl mb-4">📖</div>
           {books?.length === 0 ? (
             <>
               <h4 className="text-lg font-medium mb-2">
-                Thư viện chưa có sách nào
+                No books in library yet
               </h4>
               <p className="text-gray-600 mb-4">
-                Thêm sách đầu tiên vào thư viện để bắt đầu theo dõi việc đọc
+                Add the first book to your library to start tracking reading
               </p>
               <button
                 onClick={() => setIsAddBookModalOpen(true)}
                 className="btn btn-primary"
               >
-                Thêm sách đầu tiên
+                Add book
               </button>
             </>
           ) : (
             <>
               <h4 className="text-lg font-medium mb-2">
-                Không tìm thấy sách nào
+                {selectedShelfFilter === "none"
+                  ? "📚 No books without shelf assignment found"
+                  : selectedShelfFilter !== "all"
+                  ? `📚 No books found in "${
+                      shelves?.find(
+                        (s) => s.ShelfId === parseInt(selectedShelfFilter)
+                      )?.ShelfName
+                    }" shelf`
+                  : "No books found matching your filters"}
               </h4>
               <p className="text-gray-600">
-                Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
+                {selectedShelfFilter === "none"
+                  ? "All your books are organized in shelves. Great job organizing! 🎉"
+                  : "Try changing the filters or search keywords"}
               </p>
             </>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredBooks.map((book) => (
-            <BookCard
-              key={book.UserBookId}
-              book={book}
-              readingStatuses={readingStatuses}
-              shelves={shelves}
-              onUpdateStatus={handleStatusUpdate}
-              onRemove={handleRemoveBook}
-              isUpdatingStatus={updateStatusMutation.isPending}
-              isRemoving={removeBookMutation.isPending}
-            />
-          ))}
-        </div>
+        <>
+          {/* ✅ NEW: Show filter results summary */}
+          <div className="flex items-center justify-between bg-base-200 rounded-lg p-4">
+            <div className="text-sm text-gray-600">
+              Showing{" "}
+              <span className="font-semibold text-primary">
+                {filteredBooks.length}
+              </span>{" "}
+              of {bookStats.total} books
+              {selectedStatusFilter !== "all" && (
+                <span className="ml-2 badge badge-outline">
+                  {
+                    readingStatuses?.find(
+                      (s) => s.StatusId === parseInt(selectedStatusFilter)
+                    )?.StatusName
+                  }
+                </span>
+              )}
+              {selectedShelfFilter !== "all" && (
+                <span className="ml-2 badge badge-outline">
+                  {selectedShelfFilter === "none"
+                    ? "No shelf"
+                    : shelves?.find(
+                        (s) => s.ShelfId === parseInt(selectedShelfFilter)
+                      )?.ShelfName}
+                </span>
+              )}
+              {searchTerm.trim() && (
+                <span className="ml-2 badge badge-outline">"{searchTerm}"</span>
+              )}
+            </div>
+          </div>
+
+          {/* Books grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredBooks.map((book) => (
+              <BookCard
+                key={book.UserBookId}
+                book={book}
+                readingStatuses={readingStatuses}
+                shelves={shelves}
+                onUpdateStatus={handleStatusUpdate}
+                onRemove={handleRemoveBook}
+                isUpdatingStatus={updateStatusMutation.isPending}
+                isRemoving={removeBookMutation.isPending}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Add book modal */}

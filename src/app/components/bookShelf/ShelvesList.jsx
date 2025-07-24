@@ -36,7 +36,7 @@ const ShelvesList = () => {
   const handleDeleteShelf = async (shelfId, shelfName) => {
     if (
       !confirm(
-        `Bạn có chắc chắn muốn xóa kệ sách "${shelfName}"?\n\nCác sách trong kệ sẽ không bị xóa, chỉ bỏ khỏi kệ này.`
+        `You want to delete the shelf "${shelfName}"?\n\nBooks in this shelf will not be deleted, just removed from this shelf.`
       )
     ) {
       return;
@@ -73,7 +73,7 @@ const ShelvesList = () => {
   if (error) {
     return (
       <div className="alert alert-error">
-        <span>❌ Lỗi khi tải danh sách kệ sách: {error.message}</span>
+        <span>❌ Error loading shelves list: {error.message}</span>
       </div>
     );
   }
@@ -88,11 +88,11 @@ const ShelvesList = () => {
       {/* Header with create button */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-gray-700 text-2xl font-bold">
-            📚 Kệ sách của tôi
-          </h2>
+          {/* <h2 className="text-gray-700 text-2xl font-bold">
+            📚Kệ sách của tôi 
+          </h2> */}
           <p className="text-gray-600 mt-1">
-            Quản lý và tổ chức thư viện cá nhân
+            Manage your bookshelves and organize your library
           </p>
         </div>
         <button
@@ -112,16 +112,14 @@ const ShelvesList = () => {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Tạo kệ mới
+          Create Shelf
         </button>
       </div>
 
       {/* Default/System shelves */}
       {defaultShelves.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-gray-700">
-            Kệ hệ thống
-          </h3>
+          <h3 className="text-lg font-semibold mb-3 text-gray-700">Shelves</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {defaultShelves.map((shelf) => (
               <ShelfCard
@@ -138,7 +136,7 @@ const ShelvesList = () => {
       {/* Custom shelves */}
       <div>
         <h3 className="text-lg font-semibold mb-3 text-gray-700">
-          Kệ tùy chỉnh
+          Shelves
           <span className="text-sm font-normal text-gray-500 ml-2">
             ({customShelves.length})
           </span>
@@ -148,16 +146,16 @@ const ShelvesList = () => {
           <div className="text-center py-12 bg-base-200 rounded-lg">
             <div className="text-6xl mb-4">📚</div>
             <h4 className="text-lg font-medium mb-2">
-              Chưa có kệ sách tùy chỉnh
+              No custom bookshelves yet
             </h4>
             <p className="text-gray-600 mb-4">
-              Tạo kệ sách để tổ chức thư viện theo ý thích
+              Create shelves to organize your library
             </p>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="btn btn-primary"
             >
-              Tạo kệ đầu tiên
+              Create your first shelf
             </button>
           </div>
         ) : (
@@ -201,7 +199,7 @@ const ShelfCard = ({ shelf, isDefault, onDelete, isDeleting, onViewBooks }) => {
           <h3 className="card-title text-lg truncate flex-1 mr-2">
             {shelf.ShelfName}
             {isDefault && (
-              <div className="badge badge-secondary badge-sm">Hệ thống</div>
+              <div className="badge badge-secondary badge-sm">Systems</div>
             )}
           </h3>
 
@@ -247,7 +245,7 @@ const ShelfCard = ({ shelf, isDefault, onDelete, isDeleting, onViewBooks }) => {
                     {isDeleting ? (
                       <>
                         <span className="loading loading-spinner loading-xs"></span>
-                        Đang xóa...
+                        Deleting...
                       </>
                     ) : (
                       <>
@@ -264,7 +262,7 @@ const ShelfCard = ({ shelf, isDefault, onDelete, isDeleting, onViewBooks }) => {
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                           />
                         </svg>
-                        Xóa
+                        Delete
                       </>
                     )}
                   </a>
@@ -283,7 +281,7 @@ const ShelfCard = ({ shelf, isDefault, onDelete, isDeleting, onViewBooks }) => {
 
         {/* Book count and info */}
         <div className="flex justify-between items-center text-sm text-gray-500">
-          <span>📖 {shelf.BookCount} sách</span>
+          <span>📖 {shelf.BookCount} books</span>
           <span>{formatDate(shelf.CreatedAt)}</span>
         </div>
 
@@ -312,7 +310,7 @@ const ShelfCard = ({ shelf, isDefault, onDelete, isDeleting, onViewBooks }) => {
                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
               />
             </svg>
-            Xem sách
+            View Books
           </button>
         </div>
       </div>
