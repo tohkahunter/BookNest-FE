@@ -11,6 +11,7 @@ import Login from "../pages/Log In";
 import BookDetail from "../pages/BookDetails/BookDetail";
 import ProfilePage from "../pages/Profile/ProfilePage";
 import GenresList from "../pages/Genres";
+import Admin from "../pages/Admin";
 
 // Layout imports
 import MainLayout from "../layout/MainLayout";
@@ -313,6 +314,14 @@ export default function MainRoutes() {
                       </a>
                     </div>
                   </div>
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <MainLayout>
+                  <Admin />
                 </MainLayout>
               }
             />

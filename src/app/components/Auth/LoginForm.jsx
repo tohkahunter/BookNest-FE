@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { login } from "../../../services/authService";
-
+import {useNavigate} from "react-router-dom";
 export default function LoginForm({ onSwitchToRegister }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   // Xử lý đăng nhập - copy nguyên từ AuthForm gốc
   async function handleLogin(e) {
@@ -24,9 +26,18 @@ export default function LoginForm({ onSwitchToRegister }) {
       console.log({ email, password });
       const result = await login({ email, password });
       console.log("Login success:", result);
+      const user = result.user;
+      if (!user) throw new Error("Invalid user object from login");
+
+
+      if (user.roleId === 3) {
+        navigate("/admin");
+      } else {
+        navigate("/"); 
+      }
 
       // Redirect về home (Header sẽ tự động cập nhật nhờ auth event)
-      window.location.href = "/";
+      // window.location.href = "/";
     } catch (error) {
       console.log("Backend error:", error.response?.data);
       let msg = "Invalid email or password";
@@ -209,5 +220,5 @@ export default function LoginForm({ onSwitchToRegister }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
