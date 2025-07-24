@@ -44,26 +44,84 @@ const ReviewForm = ({ bookId, existingReview = null, onCancel, onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!validateForm()) return;
+
+  //   const reviewData = {
+  //     bookId,
+  //     reviewText: reviewText.trim(),
+  //     rating,
+  //     isPublic,
+  //   };
+
+  //   try {
+  //     if (isEditing) {
+  //       await updateReviewMutation.mutateAsync({
+  //         reviewId: existingReview.ReviewId,
+  //         ...reviewData,
+  //       });
+  //     } else {
+  //       await createReviewMutation.mutateAsync(reviewData);
+  //     }
+
+  //     // Reset form
+  //     setReviewText("");
+  //     setRating(5);
+  //     setIsPublic(true);
+  //     setErrors({});
+
+  //     // Call success callback
+  //     if (onSuccess) {
+  //       onSuccess();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error submitting review:", error);
+
+  //     // Handle specific error cases
+  //     if (error.response?.status === 400) {
+  //       setErrors({
+  //         submit: error.response.data.message || "Invalid review data",
+  //       });
+  //     } else if (error.response?.status === 401) {
+  //       setErrors({ submit: "Please log in to submit a review" });
+  //     } else {
+  //       setErrors({ submit: "An error occurred while submitting your review" });
+  //     }
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    const reviewData = {
-      bookId,
-      reviewText: reviewText.trim(),
-      rating,
-      isPublic,
-    };
-
     try {
       if (isEditing) {
-        await updateReviewMutation.mutateAsync({
+        console.log("🔄 Submitting update with:", {
           reviewId: existingReview.ReviewId,
-          ...reviewData,
+          bookId: bookId, // ← Ensure this exists
+          reviewText: reviewText.trim(),
+          rating,
+          isPublic,
         });
+
+        const result = await updateReviewMutation.mutateAsync({
+          reviewId: existingReview.ReviewId,
+          bookId: bookId, // ← CRITICAL: Must have bookId
+          reviewText: reviewText.trim(),
+          rating,
+          isPublic,
+        });
+
+        console.log("✅ Mutation completed:", result);
       } else {
-        await createReviewMutation.mutateAsync(reviewData);
+        await createReviewMutation.mutateAsync({
+          bookId,
+          reviewText: reviewText.trim(),
+          rating,
+          isPublic,
+        });
       }
 
       // Reset form
@@ -77,7 +135,7 @@ const ReviewForm = ({ bookId, existingReview = null, onCancel, onSuccess }) => {
         onSuccess();
       }
     } catch (error) {
-      console.error("Error submitting review:", error);
+      console.error("❌ Submit error:", error);
 
       // Handle specific error cases
       if (error.response?.status === 400) {

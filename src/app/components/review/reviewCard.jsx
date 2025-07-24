@@ -4,6 +4,11 @@ import CommentSection from "../comment/CommentSection";
 import { useDeleteReview } from "../../hooks/useReview";
 
 const ReviewCard = ({ review, onEdit }) => {
+  console.log("🐛 ReviewCard render:", {
+    ReviewId: review.ReviewId,
+    ReviewText: review.ReviewText,
+    rendered_at: new Date().toLocaleTimeString(),
+  });
   const [showComments, setShowComments] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 

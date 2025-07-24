@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { QUERY_KEYS } from "../../../lib/queryKeys";
 import ReviewForm from "./reviewForm";
 import ReviewCard from "./reviewCard";
 import StarRating from "./starRating";
@@ -31,6 +32,13 @@ const ReviewSection = ({ bookId }) => {
   const { data: myReview, isLoading: myReviewLoading } =
     useMyReviewForBook(bookId);
 
+  console.log("🐛 ReviewSection State:", {
+    showReviewForm,
+    editingReview,
+    myReview: myReview,
+    myReviewLoading,
+    bookId,
+  });
   const {
     data: bookInLibrary,
     isLoading: libraryLoading,
@@ -192,13 +200,17 @@ const ReviewSection = ({ bookId }) => {
   };
 
   const handleReviewSuccess = () => {
-    console.log("🔍 Review Success");
+    console.log("🎉 Review Success - Forms closed");
+
+    // ✅ ONLY close forms - no cache operations
     setShowReviewForm(false);
     setEditingReview(null);
+
+    console.log("✅ Forms closed - cache preserved");
   };
 
   const handleReviewCancel = () => {
-    console.log("🔍 Review Cancelled");
+    console.log("❌ Review Cancelled");
     setShowReviewForm(false);
     setEditingReview(null);
   };

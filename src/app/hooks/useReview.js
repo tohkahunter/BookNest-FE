@@ -138,37 +138,104 @@ export const useCreateReview = () => {
 };
 
 // Hook to update a review
+// export const useUpdateReview = () => {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: ({ reviewId, reviewText, rating, isPublic }) =>
+//       reviewApi.updateReview(reviewId, reviewText, rating, isPublic),
+//     onSuccess: (data, variables) => {
+//       const updatedReview = data.Review || data; // Handle different response formats
+//       console.log("✅ Review updated successfully:", updatedReview);
+
+//       // Update specific review cache
+//       queryClient.setQueryData(
+//         QUERY_KEYS.REVIEW(variables.reviewId),
+//         updatedReview
+//       );
+
+//       // Invalidate book reviews to reflect changes
+//       queryClient.invalidateQueries({
+//         queryKey: QUERY_KEYS.BOOK_REVIEWS(updatedReview.BookId),
+//       });
+
+//       // Update my review cache
+//       queryClient.setQueryData(
+//         QUERY_KEYS.MY_REVIEW(updatedReview.BookId),
+//         updatedReview
+//       );
+
+//       // Invalidate my reviews list
+//       queryClient.invalidateQueries({
+//         queryKey: QUERY_KEYS.MY_REVIEWS,
+//       });
+//     },
+//     onError: (error) => {
+//       console.error("❌ Error updating review:", error);
+//     },
+//   });
+// };
+
 export const useUpdateReview = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ reviewId, reviewText, rating, isPublic }) =>
-      reviewApi.updateReview(reviewId, reviewText, rating, isPublic),
-    onSuccess: (data, variables) => {
-      const updatedReview = data.Review || data; // Handle different response formats
-      console.log("✅ Review updated successfully:", updatedReview);
+    mutationFn: ({ reviewId, bookId, reviewText, rating, isPublic }) => {
+      console.log("🚀 API Call with:", {
+        reviewId,
+        reviewText,
+        rating,
+        isPublic,
+      });
+      return reviewApi.updateReview(reviewId, reviewText, rating, isPublic);
+    },
+    onSuccess: (apiResponse, variables) => {
+      const updatedReview = apiResponse.Review || apiResponse;
+      const bookId = variables.bookId;
 
-      // Update specific review cache
-      queryClient.setQueryData(
-        QUERY_KEYS.REVIEW(variables.reviewId),
-        updatedReview
+      console.log("✅ API Response:", updatedReview);
+      console.log("✅ New Review Text:", updatedReview.ReviewText);
+
+      // 1. Update MY_REVIEW cache
+      queryClient.setQueryData(QUERY_KEYS.MY_REVIEW(bookId), updatedReview);
+      console.log("📝 MY_REVIEW cache updated");
+
+      // 2. Update the review in BOOK_REVIEWS list
+      const currentBookReviews = queryClient.getQueryData(
+        QUERY_KEYS.BOOK_REVIEWS(bookId)
       );
 
-      // Invalidate book reviews to reflect changes
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.BOOK_REVIEWS(updatedReview.BookId),
-      });
+      if (currentBookReviews && currentBookReviews.Reviews) {
+        const updatedBookReviews = {
+          ...currentBookReviews,
+          Reviews: currentBookReviews.Reviews.map((review) => {
+            if (review.ReviewId === updatedReview.ReviewId) {
+              console.log("🔄 Updating review in list:", {
+                oldText: review.ReviewText,
+                newText: updatedReview.ReviewText,
+              });
+              return { ...review, ...updatedReview };
+            }
+            return review;
+          }),
+        };
 
-      // Update my review cache
-      queryClient.setQueryData(
-        QUERY_KEYS.MY_REVIEW(updatedReview.BookId),
-        updatedReview
-      );
+        queryClient.setQueryData(
+          QUERY_KEYS.BOOK_REVIEWS(bookId),
+          updatedBookReviews
+        );
 
-      // Invalidate my reviews list
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.MY_REVIEWS,
-      });
+        console.log(
+          "✅ BOOK_REVIEWS cache updated with new text:",
+          updatedReview.ReviewText
+        );
+      }
+
+      console.log("✅ Both caches updated successfully");
+
+      // ❌ REMOVE ALL INVALIDATION - Keep fresh cache data
+      // No setTimeout, no invalidateQueries
+      // Let user manually refresh if they want server data
     },
     onError: (error) => {
       console.error("❌ Error updating review:", error);
