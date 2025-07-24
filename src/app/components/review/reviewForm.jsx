@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import StarRating from "./StarRating";
+import StarRating from "../../components/review/starRating";
 import { useCreateReview, useUpdateReview } from "../../hooks/useReview";
 
 const ReviewForm = ({ bookId, existingReview = null, onCancel, onSuccess }) => {
