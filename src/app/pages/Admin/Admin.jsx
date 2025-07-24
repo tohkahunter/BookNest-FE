@@ -6,10 +6,15 @@ import {
   addBook,
   updateBook,
   deleteBook,
+  updateAuthor,
+  deleteAuthor,
+  updateGenre,
+  deleteGenre,
 } from "./services/adminApi";
 import AddModal from "./components/addModal";
 import EditModal from "./components/editModal";
 import DeleteModal from "./components/deleteModal";
+import AuthorGenreManager from "./components/AuthorGenreManager";
 import { toast } from "react-toastify";
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("all");
@@ -29,6 +34,8 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [sortOption, setSortOption] = useState("None");
+  const [isAuthorGenreManagerOpen, setIsAuthorGenreManagerOpen] =
+    useState(false);
 
   const booksPerPage = 10;
 
@@ -182,6 +189,224 @@ export default function Admin() {
     setGenres((prev) => [...prev, newGenre]);
   };
 
+  const handleUpdateAuthor = async (authorId, authorData) => {
+    try {
+      // Format the data to match backend expectations
+      const requestData = {
+        AuthorId: authorId,
+        Name: authorData.Name,
+      };
+
+      await updateAuthor(authorId, requestData);
+      // Refresh authors list
+      const updatedAuthors = await getAllAuthors();
+      setAuthors(updatedAuthors);
+      setAuthorCount(updatedAuthors.length);
+
+      // Refresh books to update author names
+      const updatedBooks = await getAllBooks();
+      setBooks(updatedBooks);
+      setBookCount(updatedBooks.length);
+
+      toast.success("Author updated successfully!");
+    } catch (error) {
+      console.error("Failed to update author:", error);
+      toast.error("Failed to update author: " + error.message);
+    }
+  };
+
+  const handleDeleteAuthor = async (authorId) => {
+    try {
+      console.log("Starting delete author operation for ID:", authorId);
+
+      // First, find and delete all books by this author
+      const booksToDelete = books.filter((book) => {
+        console.log(
+          `Checking book ${book.BookId}: AuthorId=${
+            book.AuthorId
+          }(${typeof book.AuthorId}), Target=${authorId}(${typeof authorId})`
+        );
+        return book.AuthorId == authorId; // Use == for type coercion
+      });
+      console.log("Books to delete:", booksToDelete.length);
+
+      // Delete all books first (with error handling for each)
+      for (const book of booksToDelete) {
+        try {
+          await deleteBook(book.BookId);
+          console.log("Deleted book:", book.BookId);
+        } catch (bookError) {
+          console.error("Failed to delete book:", book.BookId, bookError);
+          throw new Error(
+            `Failed to delete book "${book.Title}": ${bookError.message}`
+          );
+        }
+      }
+
+      // Then delete the author
+      console.log("Deleting author:", authorId);
+      await deleteAuthor(authorId);
+
+      // Refresh all data
+      console.log("Refreshing all data...");
+      const [updatedAuthors, updatedBooks, updatedGenres] = await Promise.all([
+        getAllAuthors(),
+        getAllBooks(),
+        getAllGenres(),
+      ]);
+
+      console.log("Updated data:", {
+        authors: updatedAuthors.length,
+        books: updatedBooks.length,
+        genres: updatedGenres.length,
+      });
+
+      setAuthors(updatedAuthors);
+      setAuthorCount(updatedAuthors.length);
+      setBooks(updatedBooks);
+      setBookCount(updatedBooks.length);
+      setGenres(updatedGenres);
+
+      toast.success("Author and associated books deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete author:", error);
+      toast.error("Failed to delete author: " + error.message);
+
+      // Refresh data anyway to ensure consistency
+      try {
+        const [updatedAuthors, updatedBooks, updatedGenres] = await Promise.all(
+          [getAllAuthors(), getAllBooks(), getAllGenres()]
+        );
+        setAuthors(updatedAuthors);
+        setAuthorCount(updatedAuthors.length);
+        setBooks(updatedBooks);
+        setBookCount(updatedBooks.length);
+        setGenres(updatedGenres);
+      } catch (refreshError) {
+        console.error("Failed to refresh data after error:", refreshError);
+      }
+    }
+  };
+
+  const handleUpdateGenre = async (genreId, genreData) => {
+    try {
+      // Format the data to match backend expectations
+      const requestData = {
+        GenreId: genreId,
+        GenreName: genreData.GenreName,
+        Description: genreData.Description || "",
+      };
+
+      await updateGenre(genreId, requestData);
+      // Refresh genres list
+      const updatedGenres = await getAllGenres();
+      setGenres(updatedGenres);
+
+      // Refresh books to update genre names
+      const updatedBooks = await getAllBooks();
+      setBooks(updatedBooks);
+      setBookCount(updatedBooks.length);
+
+      toast.success("Genre updated successfully!");
+    } catch (error) {
+      console.error("Failed to update genre:", error);
+      toast.error("Failed to update genre: " + error.message);
+    }
+  };
+
+  const handleDeleteGenre = async (genreId) => {
+    try {
+      console.log("=== GENRE DELETE OPERATION START ===");
+      console.log("Genre ID to delete:", genreId);
+      console.log("Current books in state:", books.length);
+      console.log("Current genres in state:", genres.length);
+      console.log("Current authors in state:", authors.length);
+
+      // First, find and delete all books with this genre
+      const booksToDelete = books.filter((book) => {
+        console.log(
+          `Checking book ${book.BookId}: GenreId=${
+            book.GenreId
+          }(${typeof book.GenreId}), Target=${genreId}(${typeof genreId})`
+        );
+        return book.GenreId == genreId; // Use == for type coercion
+      });
+      console.log("Books to delete:", booksToDelete);
+      console.log("Number of books to delete:", booksToDelete.length);
+
+      // If there are no books to delete, just delete the genre directly
+      if (booksToDelete.length === 0) {
+        console.log(
+          "No books associated with this genre, deleting genre directly"
+        );
+        await deleteGenre(genreId);
+      } else {
+        // Delete all books first (with error handling for each)
+        console.log("Deleting associated books first...");
+        for (const book of booksToDelete) {
+          try {
+            console.log(`Deleting book: ${book.BookId} - "${book.Title}"`);
+            await deleteBook(book.BookId);
+            console.log(`Successfully deleted book: ${book.BookId}`);
+          } catch (bookError) {
+            console.error("Failed to delete book:", book.BookId, bookError);
+            throw new Error(
+              `Failed to delete book "${book.Title}": ${bookError.message}`
+            );
+          }
+        }
+
+        // Then delete the genre
+        console.log("All books deleted, now deleting genre:", genreId);
+        await deleteGenre(genreId);
+      }
+
+      console.log("Genre deleted successfully, refreshing data...");
+
+      // Refresh all data
+      const [updatedGenres, updatedBooks, updatedAuthors] = await Promise.all([
+        getAllGenres(),
+        getAllBooks(),
+        getAllAuthors(),
+      ]);
+
+      console.log("Data refreshed:", {
+        genres: updatedGenres.length,
+        books: updatedBooks.length,
+        authors: updatedAuthors.length,
+      });
+
+      setGenres(updatedGenres);
+      setBooks(updatedBooks);
+      setBookCount(updatedBooks.length);
+      setAuthors(updatedAuthors);
+      setAuthorCount(updatedAuthors.length);
+
+      console.log("=== GENRE DELETE OPERATION SUCCESS ===");
+      toast.success("Genre and associated books deleted successfully!");
+    } catch (error) {
+      console.error("=== GENRE DELETE OPERATION FAILED ===");
+      console.error("Error details:", error);
+      toast.error("Failed to delete genre: " + error.message);
+
+      // Refresh data anyway to ensure consistency
+      try {
+        console.log("Refreshing data after error...");
+        const [updatedGenres, updatedBooks, updatedAuthors] = await Promise.all(
+          [getAllGenres(), getAllBooks(), getAllAuthors()]
+        );
+        setGenres(updatedGenres);
+        setBooks(updatedBooks);
+        setBookCount(updatedBooks.length);
+        setAuthors(updatedAuthors);
+        setAuthorCount(updatedAuthors.length);
+        console.log("Data refreshed after error");
+      } catch (refreshError) {
+        console.error("Failed to refresh data after error:", refreshError);
+      }
+    }
+  };
+
   return (
     <div className="admin-container mb-10 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 min-h-screen">
       {/* Header Section */}
@@ -218,7 +443,7 @@ export default function Admin() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4">
         {/* Action Buttons */}
-        <div className="mb-8">
+        <div className="mb-8 flex flex-wrap gap-4">
           <button
             className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3"
             onClick={() => setIsAddModalOpen(true)}
@@ -237,6 +462,26 @@ export default function Admin() {
               />
             </svg>
             Add New Book
+          </button>
+
+          <button
+            className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3"
+            onClick={() => setIsAuthorGenreManagerOpen(true)}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+              />
+            </svg>
+            Manage Authors & Genres
           </button>
         </div>
 
@@ -725,6 +970,38 @@ export default function Admin() {
         onConfirm={handleConfirmDelete}
         bookData={bookToDelete}
         loading={isDeleting}
+      />
+
+      <AuthorGenreManager
+        key={`${authors.length}-${genres.length}`}
+        isOpen={isAuthorGenreManagerOpen}
+        onClose={() => setIsAuthorGenreManagerOpen(false)}
+        type="author"
+        data={[...authors, ...genres]}
+        onUpdate={(id, data) => {
+          // Determine if it's author or genre based on the data structure
+          if (data.Name !== undefined) {
+            return handleUpdateAuthor(id, data);
+          } else {
+            return handleUpdateGenre(id, data);
+          }
+        }}
+        onDelete={(id, itemType) => {
+          console.log("=== DELETE HANDLER CALLED ===");
+          console.log("Delete ID:", id, "Type:", typeof id);
+          console.log("Item Type:", itemType);
+
+          if (itemType === "author") {
+            console.log("Calling handleDeleteAuthor with:", id);
+            return handleDeleteAuthor(id);
+          } else if (itemType === "genre") {
+            console.log("Calling handleDeleteGenre with:", id);
+            return handleDeleteGenre(id);
+          } else {
+            throw new Error("Unknown item type: " + itemType);
+          }
+        }}
+        books={books}
       />
     </div>
   );

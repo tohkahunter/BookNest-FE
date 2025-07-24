@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { generateRandomISBN } from "../services/adminApi";
 import { toast } from "react-toastify";
 export default function EditModal({
   isOpen,
@@ -45,6 +46,15 @@ export default function EditModal({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleGenerateISBN = () => {
+    const randomISBN = generateRandomISBN();
+    setFormData((prev) => ({
+      ...prev,
+      isbn13: randomISBN,
+    }));
+    toast.success("Random ISBN generated!");
   };
 
   const handleSubmit = (e) => {
@@ -141,14 +151,36 @@ export default function EditModal({
                   ISBN-13
                 </span>
               </label>
-              <input
-                type="text"
-                name="isbn13"
-                value={formData.isbn13}
-                onChange={handleInputChange}
-                placeholder="978-0000000000"
-                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  name="isbn13"
+                  value={formData.isbn13}
+                  onChange={handleInputChange}
+                  placeholder="978-0000000000"
+                  className="input input-bordered flex-1 bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateISBN}
+                  className="btn btn-outline btn-sm hover:bg-green-500 hover:text-white hover:border-green-500 rounded-xl transition-all duration-200"
+                  title="Generate Random ISBN"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
