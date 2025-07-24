@@ -32,9 +32,9 @@ const ShelfBooksPage = () => {
 
   // Reading statuses for BookCard
   const readingStatuses = [
-    { StatusId: 1, StatusName: "Muốn đọc" },
-    { StatusId: 2, StatusName: "Đang đọc" },
-    { StatusId: 3, StatusName: "Đã đọc" },
+    { StatusId: 1, StatusName: "Want to Read" },
+    { StatusId: 2, StatusName: "Currently Reading" },
+    { StatusId: 3, StatusName: "Read" },
   ];
 
   // Get current shelf info from the first book
@@ -255,7 +255,7 @@ const ShelfBooksPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-gray-600 mb-2">
-                      Tổng số sách
+                      All books
                     </p>
                     <p className="text-4xl font-bold text-gray-900">
                       {booksInShelf?.length || 0}
@@ -277,7 +277,7 @@ const ShelfBooksPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-gray-600 mb-2">
-                      Muốn đọc
+                      Want to Read
                     </p>
                     <p className="text-4xl font-bold text-yellow-600">
                       {booksInShelf?.filter((b) => b.StatusId === 1).length ||
@@ -294,7 +294,7 @@ const ShelfBooksPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-gray-600 mb-2">
-                      Đang đọc
+                      Currently Reading
                     </p>
                     <p className="text-4xl font-bold text-blue-600">
                       {booksInShelf?.filter((b) => b.StatusId === 2).length ||
@@ -311,7 +311,7 @@ const ShelfBooksPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-gray-600 mb-2">
-                      Đã đọc
+                      Read
                     </p>
                     <p className="text-4xl font-bold text-green-600">
                       {booksInShelf?.filter((b) => b.StatusId === 3).length ||
@@ -330,7 +330,7 @@ const ShelfBooksPage = () => {
               <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                   <span className="text-3xl">📖</span>
-                  Danh sách sách
+                  Book List
                 </h2>
               </div>
 
@@ -341,11 +341,11 @@ const ShelfBooksPage = () => {
                       <span className="text-6xl opacity-50">📚</span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-700 mb-4">
-                      Kệ sách trống
+                      Book Shelf is Empty
                     </h3>
                     <p className="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
-                      Chưa có cuốn sách nào trong kệ này. Hãy thêm sách để bắt
-                      đầu xây dựng thư viện!
+                      There are no books in this shelf. Please add books to
+                      start building your library!
                     </p>
                   </div>
                 ) : (
@@ -575,8 +575,8 @@ const BookCard = ({
 
           {book.StatusId === READING_STATUS.WANT_TO_READ && (
             <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
-              <div className="flex items-center justify-center">
-                <span className="text-amber-800 text-xs font-medium flex items-center">
+              <div className=" flex items-center justify-center">
+                <span className=" text-gray-700 text-xs font-medium flex items-center">
                   <svg
                     className="w-4 h-4 mr-1"
                     fill="currentColor"
@@ -636,7 +636,9 @@ const BookCard = ({
         <div className="mt-auto pt-4 border-t border-gray-100">
           <div className="flex gap-2">
             {/* Status Update Button */}
-            <div className="dropdown flex-1">
+            <div className="dropdown dropdown-top dropdown-end flex-1">
+              {" "}
+              {/* ← ADD dropdown-end for better positioning */}
               <label
                 tabIndex={0}
                 className="text-gray-700 btn btn-sm btn-outline w-full text-xs normal-case font-medium"
@@ -669,10 +671,16 @@ const BookCard = ({
               {!isUpdatingStatus && (
                 <ul
                   tabIndex={0}
-                  className="dropdown-content menu p-2 shadow-lg bg-white rounded-lg w-48 z-50 border border-gray-200"
+                  className="dropdown-content menu p-2 shadow-xl bg-white rounded-lg w-48 border border-gray-200"
+                  style={{
+                    zIndex: 9999,
+                    position: "absolute",
+                    bottom: "100%",
+                    marginBottom: "8px",
+                  }}
                 >
                   {readingStatuses?.map((status) => (
-                    <li key={status.StatusId}>
+                    <li key={status.StatusId} className="py-1 text-gray-700">
                       <a
                         onClick={() =>
                           onUpdateStatus(book.BookId, status.StatusId)
