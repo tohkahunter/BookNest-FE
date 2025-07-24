@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getBooksByShelf } from "../../../services/bookService";
+import { getBooksByShelf } from "../../../services/bookshelfService";
 import {
   useUpdateBookStatus,
   useRemoveBookFromLibrary,
