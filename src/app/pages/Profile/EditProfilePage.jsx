@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "../../hooks/useProfile"; // ✅ Fix import path
 import { toast } from "react-hot-toast";
-import { Eye, EyeOff, Lock, Check, X, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, Check, X } from "lucide-react";
 
 const EditProfilePage = () => {
   const navigate = useNavigate();
