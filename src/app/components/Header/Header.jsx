@@ -17,15 +17,14 @@ const Header = () => {
   const browseDropdownRef = useRef(null);
   const communityDropdownRef = useRef(null);
   const userDropdownRef = useRef(null);
-<<<<<<< HEAD
-=======
+
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
   const handleSearch = (searchTerm) => {
     if (searchTerm.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
     }
   };
->>>>>>> ba427cfed1db01b241d6433094a219e7b3c8e646
 
   const handleLogout = async () => {
     const result = await logout();
@@ -404,7 +403,7 @@ const Header = () => {
                         </Link>
                       )}
 
-                      <Link
+                      {/* <Link
                         to="/settings"
                         className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                         onClick={() => setShowUserDropdown(false)}
@@ -429,7 +428,7 @@ const Header = () => {
                           />
                         </svg>
                         Settings
-                      </Link>
+                      </Link> */}
                       <div className="border-t border-gray-100 mt-2 pt-2">
                         <button
                           onClick={handleLogout}

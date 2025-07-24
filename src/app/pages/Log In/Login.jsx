@@ -29,8 +29,12 @@ export default function LoginPage() {
 
     try {
       console.log({ email, password });
-      await login({ email, password });
-      navigate("/", { replace: true });
+      const result = await login({ email, password });
+      if (result.user.roleId === 3) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       console.log("Backend error:", error.response?.data);
       let msg = "Invalid email or password";
