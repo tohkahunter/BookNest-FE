@@ -1,14 +1,12 @@
 // src/app/components/BookShelf/ShelvesList.jsx (Fixed Navigation)
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, use } from "react";
 import { useMyShelves, useDeleteShelf, useMyBooks } from "../../hooks/index";
 import CreateShelfModal from "./CreateShelfModal";
+import { useNavigate } from "react-router-dom";
 
 const ShelvesList = () => {
   // ✅ Mock navigate for demo - replace with: const navigate = useNavigate();
-  const navigate = (path) => {
-    console.log("🚀 Navigating to:", path);
-    window.location.href = path;
-  };
+  const navigate = useNavigate();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deletingShelfId, setDeletingShelfId] = useState(null);
