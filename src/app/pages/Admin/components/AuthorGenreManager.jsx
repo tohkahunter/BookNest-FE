@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 export default function AuthorGenreManager({
@@ -13,10 +13,44 @@ export default function AuthorGenreManager({
   const [editingItem, setEditingItem] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [deleteWarning, setDeleteWarning] = useState(null);
+  const [localData, setLocalData] = useState(data); // Local copy for immediate updates
 
-  // Separate authors and genres from the combined data
-  const authors = data.filter((item) => item.AuthorId !== undefined);
-  const genres = data.filter((item) => item.GenreId !== undefined);
+  // Update local data when prop data changes
+  useEffect(() => {
+    console.log("AuthorGenreManager - data prop changed:", {
+      oldDataLength: localData.length,
+      newDataLength: data.length,
+      oldAuthors: localData.filter((item) => item.AuthorId !== undefined)
+        .length,
+      newAuthors: data.filter((item) => item.AuthorId !== undefined).length,
+      oldGenres: localData.filter((item) => item.GenreId !== undefined).length,
+      newGenres: data.filter((item) => item.GenreId !== undefined).length,
+    });
+    setLocalData([...data]); // Create a new array to ensure proper state update
+  }, [data]); // Only depend on data prop changes
+
+  // Debug logging to track component re-renders and state changes
+  useEffect(() => {
+    console.log("AuthorGenreManager data changed:", {
+      authors: localData.filter((item) => item.AuthorId !== undefined).length,
+      genres: localData.filter((item) => item.GenreId !== undefined).length,
+      activeTab,
+      isOpen,
+    });
+  }, [localData, activeTab, isOpen]);
+
+  // Reset editing states when modal closes/opens to prevent stale data
+  useEffect(() => {
+    if (!isOpen) {
+      setEditingItem(null);
+      setEditFormData({});
+      setDeleteWarning(null);
+    }
+  }, [isOpen]);
+
+  // Separate authors and genres from the local data
+  const authors = localData.filter((item) => item.AuthorId !== undefined);
+  const genres = localData.filter((item) => item.GenreId !== undefined);
 
   const currentItems = activeTab === "author" ? authors : genres;
   const isAuthor = activeTab === "author";
@@ -38,6 +72,16 @@ export default function AuthorGenreManager({
     }
 
     try {
+      // Immediately update local data for instant UI feedback
+      setLocalData((prevData) =>
+        prevData.map((item) => {
+          if (item[itemKey] === editingItem[itemKey]) {
+            return { ...item, ...editFormData };
+          }
+          return item;
+        })
+      );
+
       await onUpdate(editingItem[itemKey], editFormData);
       toast.success(`${isAuthor ? "Author" : "Genre"} updated successfully!`);
       setEditingItem(null);
@@ -47,6 +91,10 @@ export default function AuthorGenreManager({
       toast.error(
         `Failed to update ${isAuthor ? "author" : "genre"}: ${error.message}`
       );
+      // Revert local data to original data on error
+      setLocalData(data);
+      setEditingItem(null);
+      setEditFormData({});
     }
   };
 
@@ -71,15 +119,33 @@ export default function AuthorGenreManager({
       console.log("ID to delete:", idToDelete, "Type:", typeof idToDelete);
       console.log("Item key used:", itemKey);
       console.log("Item type:", itemType);
+      console.log("Current active tab:", activeTab);
+
+      // Clear the delete warning immediately to prevent double-clicking
+      setDeleteWarning(null);
+
+      // Immediately update local data for instant UI feedback
+      setLocalData((prevData) =>
+        prevData.filter((item) => {
+          if (itemType === "author") {
+            return item.AuthorId !== idToDelete;
+          } else {
+            return item.GenreId !== idToDelete;
+          }
+        })
+      );
 
       await onDelete(idToDelete, itemType);
       toast.success(`${isAuthor ? "Author" : "Genre"} deleted successfully!`);
-      setDeleteWarning(null);
     } catch (error) {
       console.error("Delete error:", error);
       toast.error(
         `Failed to delete ${isAuthor ? "author" : "genre"}: ${error.message}`
       );
+      // Reset delete warning state on error
+      setDeleteWarning(null);
+      // Revert local data to original data on error
+      setLocalData(data);
     }
   };
 
