@@ -141,7 +141,7 @@ export default function EditModal({
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="Enter book title"
-                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                className=" text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 required
               />
             </div>
@@ -158,7 +158,7 @@ export default function EditModal({
                   value={formData.isbn13}
                   onChange={handleInputChange}
                   placeholder="978-0000000000"
-                  className="input input-bordered flex-1 bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                  className="text-gray-700 input input-bordered flex-1 bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 />
                 <button
                   type="button"
@@ -196,7 +196,7 @@ export default function EditModal({
                 name="authorId"
                 value={formData.authorId}
                 onChange={handleInputChange}
-                className="select select-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                className="text-gray-700 select select-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 required
               >
                 <option value="">Select an author</option>
@@ -217,7 +217,7 @@ export default function EditModal({
                 name="genreId"
                 value={formData.genreId}
                 onChange={handleInputChange}
-                className="select select-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                className="text-gray-700 select select-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 required
               >
                 <option value="">Select a genre</option>
@@ -246,7 +246,7 @@ export default function EditModal({
                 placeholder="2024"
                 min="1000"
                 max={new Date().getFullYear()}
-                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                className="text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
               />
             </div>
             <div className="form-control">
@@ -262,7 +262,7 @@ export default function EditModal({
                 onChange={handleInputChange}
                 placeholder="300"
                 min="1"
-                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                className="text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
               />
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function EditModal({
                   value={formData.coverImageUrl}
                   onChange={handleInputChange}
                   placeholder="https://example.com/book-cover.jpg"
-                  className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+                  className="text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
                 />
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function EditModal({
               value={formData.description}
               onChange={handleInputChange}
               placeholder="Enter book description..."
-              className="textarea textarea-bordered h-32 resize-none bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
+              className="text-gray-700 textarea textarea-bordered h-32 resize-none bg-white border-2 border-gray-200 focus:border-orange-500 rounded-xl transition-all duration-200"
             ></textarea>
           </div>
 
@@ -351,14 +351,14 @@ export default function EditModal({
             <div className="space-x-3">
               <button
                 type="button"
-                className="btn btn-outline border-2 border-gray-300 hover:bg-gray-100 rounded-xl px-6 py-3 font-semibold transition-all duration-200"
+                className=" text-gray-700 btn btn-outline border-2 border-gray-300 hover:bg-gray-100 rounded-xl px-6 py-3 font-semibold transition-all duration-200"
                 onClick={onClose}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="btn bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0 rounded-xl px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="text-gray-700 btn bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white border-0 rounded-xl px-8 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 Update Book
               </button>
