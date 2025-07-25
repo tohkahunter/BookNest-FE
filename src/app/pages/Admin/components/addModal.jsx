@@ -258,7 +258,7 @@ export default function AddModal({
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="Enter book title"
-                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+                className="text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
                 required
               />
             </div>
@@ -275,7 +275,7 @@ export default function AddModal({
                   value={formData.isbn13}
                   onChange={handleInputChange}
                   placeholder="978-0000000000"
-                  className="input input-bordered flex-1 bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+                  className="text-gray-700 input input-bordered flex-1 bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
                 />
                 <button
                   type="button"
@@ -314,7 +314,7 @@ export default function AddModal({
                   name="authorId"
                   value={formData.authorId}
                   onChange={handleInputChange}
-                  className="select select-bordered flex-1 bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+                  className="text-gray-700 select select-bordered flex-1 bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
                   required
                 >
                   <option value="">Select an author</option>
@@ -326,7 +326,7 @@ export default function AddModal({
                 </select>
                 <button
                   type="button"
-                  className="btn btn-outline btn-sm hover:bg-blue-500 hover:text-white hover:border-blue-500 rounded-xl transition-all duration-200"
+                  className="text-gray-700 btn btn-outline btn-sm hover:bg-blue-500 hover:text-white hover:border-blue-500 rounded-xl transition-all duration-200"
                   onClick={() => setShowNewAuthor(true)}
                   title="Add New Author"
                 >
@@ -358,7 +358,7 @@ export default function AddModal({
                   name="genreId"
                   value={formData.genreId}
                   onChange={handleInputChange}
-                  className="select select-bordered flex-1 bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+                  className="text-gray-700 select select-bordered flex-1 bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
                   required
                 >
                   <option value="">Select a genre</option>
@@ -533,7 +533,7 @@ export default function AddModal({
           {/* Row 3: Publication Year, Page Count, Language */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="form-control">
-              <label className="label">
+              <label className="label ">
                 <span className="label-text font-semibold text-gray-700">
                   Publication Year
                 </span>
@@ -546,7 +546,7 @@ export default function AddModal({
                 placeholder="2024"
                 min="1000"
                 max={new Date().getFullYear()}
-                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+                className="text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
               />
             </div>
             <div className="form-control">
@@ -562,7 +562,7 @@ export default function AddModal({
                 onChange={handleInputChange}
                 placeholder="300"
                 min="1"
-                className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+                className="text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
               />
             </div>
           </div>
@@ -580,14 +580,14 @@ export default function AddModal({
               value={formData.coverImageUrl}
               onChange={handleInputChange}
               placeholder="https://example.com/book-cover.jpg"
-              className="input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+              className=" text-gray-700 input input-bordered w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
             />
           </div>
 
           {/* Row 5: Description */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-semibold text-gray-700">
+              <span className=" label-text font-semibold text-gray-700">
                 Description
               </span>
             </label>
@@ -596,7 +596,7 @@ export default function AddModal({
               value={formData.description}
               onChange={handleInputChange}
               placeholder="Enter book description..."
-              className="textarea textarea-bordered h-32 resize-none bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
+              className="text-gray-700 textarea textarea-bordered h-32 resize-none bg-white border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-200"
             ></textarea>
           </div>
 
@@ -621,7 +621,7 @@ export default function AddModal({
             <div className="space-x-3">
               <button
                 type="button"
-                className="btn btn-outline border-2 border-gray-300 hover:bg-gray-100 rounded-xl px-6 py-3 font-semibold transition-all duration-200"
+                className="text-gray-700 btn btn-outline border-2 border-gray-300 hover:bg-gray-100 rounded-xl px-6 py-3 font-semibold transition-all duration-200"
                 onClick={onClose}
               >
                 Cancel

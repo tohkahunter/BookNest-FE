@@ -185,26 +185,26 @@ export default function AuthorGenreManager({
         </div>
 
         {/* Tabs */}
-        <div className="tabs tabs-boxed mb-6 bg-gray-100 p-1 rounded-xl">
+        <div className="text-gray-700 tabs tabs-boxed mb-6 bg-gray-100 p-1 rounded-xl">
           <button
-            className={`tab flex-1 ${
+            className={`tab flex-1 text-gray-700 ${
               activeTab === "author"
                 ? "tab-active bg-blue-500 text-white"
                 : "hover:bg-gray-200"
-            } transition-all duration-200`}
+            } transition-all duration-600`}
             onClick={() => setActiveTab("author")}
           >
-            👤 Authors ({authors.length})
+            <div className="text-gray-700"> 👤 Authors ({authors.length}) </div>
           </button>
           <button
             className={`tab flex-1 ${
               activeTab === "genre"
-                ? "tab-active bg-green-500 text-white"
+                ? "tab-active bg-green-500 text-gray-200"
                 : "hover:bg-gray-200"
-            } transition-all duration-200`}
+            } transition-all duration-600`}
             onClick={() => setActiveTab("genre")}
           >
-            🏷️ Genres ({genres.length})
+            <div className="text-gray-700"> 🏷️ Genres ({genres.length}) </div>
           </button>
         </div>
 
@@ -286,7 +286,7 @@ export default function AuthorGenreManager({
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(item)}
-                        className="btn btn-outline btn-sm hover:bg-blue-500 hover:text-white"
+                        className=" text-gray-700 btn btn-outline btn-sm hover:bg-blue-500 hover:text-white"
                         title="Edit"
                       >
                         <svg
@@ -305,7 +305,7 @@ export default function AuthorGenreManager({
                       </button>
                       <button
                         onClick={() => handleDelete(item)}
-                        className="btn btn-outline btn-sm hover:bg-red-500 hover:text-white"
+                        className=" text-gray-700 btn btn-outline btn-sm hover:bg-red-500 hover:text-white"
                         title="Delete"
                       >
                         <svg
@@ -332,7 +332,10 @@ export default function AuthorGenreManager({
 
         {/* Footer */}
         <div className="modal-action mt-6 pt-4 border-t border-gray-200">
-          <button onClick={onClose} className="btn btn-outline px-8">
+          <button
+            onClick={onClose}
+            className=" text-gray-700 btn btn-outline px-8"
+          >
             Close
           </button>
         </div>

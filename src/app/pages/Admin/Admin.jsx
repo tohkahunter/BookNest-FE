@@ -709,7 +709,7 @@ export default function Admin() {
         </div>
 
         {/* Tabs Navigation */}
-        <div className="tabs mb-6">
+        <div className="tabs mb-6 text">
           <button
             className={`tab tab-lg ${activeTab === "all" ? "tab-active" : ""}`}
             onClick={() => setActiveTab("all")}
@@ -755,7 +755,7 @@ export default function Admin() {
                 <input
                   type="text"
                   placeholder="Search books by title, author, or genre..."
-                  className="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors duration-200"
+                  className=" text-gray-700 w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors duration-200"
                   value={searchTerm}
                   onChange={handleSearchChange}
                 />
@@ -763,7 +763,7 @@ export default function Admin() {
             </div>
             <div className="flex gap-3">
               <select
-                className="px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors duration-200 min-w-32"
+                className=" text-gray-700 px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors duration-200 min-w-32"
                 value={selectedGenre}
                 onChange={handleGenreChange}
               >
@@ -776,7 +776,7 @@ export default function Admin() {
               </select>
 
               <select
-                className="px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors duration-200 min-w-32"
+                className=" text-gray-700 px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-colors duration-200 min-w-32"
                 value={sortOption}
                 onChange={handleSortChange}
               >
