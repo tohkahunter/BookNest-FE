@@ -1,4 +1,4 @@
-const url = "https://booknest-be-yynn.onrender.com";
+const url = "https://booknest-be-yynn.onrender.com/api";
 
 const getToken = () => {
   const token = localStorage.getItem("token");
